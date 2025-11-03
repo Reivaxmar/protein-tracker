@@ -57,7 +57,8 @@ protein-tracker/
 ├── types/
 │   └── index.ts           # TypeScript type definitions
 ├── utils/
-│   └── helpers.ts         # Helper functions
+│   ├── helpers.ts         # Helper functions
+│   └── api.ts             # OpenFoodFacts API integration
 └── assets/                # App icons and images
 ```
 
@@ -80,8 +81,15 @@ protein-tracker/
 ### Scan Barcode
 1. Grant camera permissions when prompted
 2. Point camera at a food barcode
-3. The app will scan and display the barcode data
-4. Note: Requires integration with a food database API (e.g., Open Food Facts) for automatic meal entry
+3. The app automatically queries the OpenFoodFacts database
+4. View detailed product information including:
+   - Product name and brand
+   - Protein content per 100g
+   - Other nutrients (energy, carbs, fat, fiber, etc.)
+5. Enter the quantity you ate (in grams)
+6. See the calculated total protein
+7. Tap "Add to Meal" to save the food to your daily log
+8. The meal is automatically saved and your daily protein total is updated
 
 ### Settings
 - Adjust your daily protein target (recommended: 0.8-1g per kg for maintenance, 1.6-2.2g per kg for muscle building)

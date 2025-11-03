@@ -40,7 +40,7 @@
 ---
 
 ### 3. Scan Screen (scan.tsx)
-**Purpose**: Scan food barcodes using camera
+**Purpose**: Scan food barcodes and automatically fetch product information
 
 **Features**:
 - Camera permission request
@@ -50,11 +50,25 @@
   - EAN-13, EAN-8
   - UPC-A, UPC-E
   - Code-128, Code-39
-- Alert displays scanned barcode data
+- **OpenFoodFacts API Integration**:
+  - Automatically queries product database after scan
+  - Fetches product name, brand, and nutritional data
+  - Displays comprehensive nutritional information:
+    - Protein per 100g (primary focus)
+    - Energy (kcal)
+    - Carbohydrates, sugars, fat, fiber, salt
+- **Product Information Modal**:
+  - Shows all available product details
+  - Quantity input field (in grams)
+  - Real-time protein calculation based on quantity
+  - "Add to Meal" button to save to daily log
+- Loading indicator while fetching data
+- Error handling for products not in database
 - "Scan Again" functionality
-- Note: Requires food database API integration for automatic meal entry
+- Automatic navigation to Home after adding meal
 
-**State**: Local state for camera permissions and scan status
+**State**: Local state for camera permissions, scan status, product data, and modal visibility
+**API**: Integrates with OpenFoodFacts API (https://world.openfoodfacts.org)
 
 ---
 
@@ -188,7 +202,7 @@
 ## Future Enhancements
 
 Potential features that could be added:
-- Food database API integration (Open Food Facts)
+- Expand food database support (USDA, other APIs)
 - Meal history and statistics
 - Weekly/monthly protein charts
 - Nutrition tracking beyond protein
@@ -197,3 +211,4 @@ Potential features that could be added:
 - Dark mode support
 - Meal photos
 - Reminders and notifications
+- Offline barcode database cache
