@@ -33,44 +33,36 @@ export default function ScanScreen() {
       if (productData) {
         setProduct(productData);
         setShowProductModal(true);
+        setLoading(false);
       } else {
+        setLoading(false);
         Alert.alert(
           'Product Not Found',
           `No product information found for barcode: ${data}\n\nThe product may not be in the OpenFoodFacts database.`,
           [
             {
               text: 'Scan Again',
-              onPress: () => {
-                setScanned(false);
-                setLoading(false);
-              },
+              onPress: () => setScanned(false),
             },
             {
               text: 'OK',
-              onPress: () => {
-                setScanned(false);
-                setLoading(false);
-              },
+              onPress: () => setScanned(false),
             },
           ]
         );
       }
     } catch (error) {
+      setLoading(false);
       Alert.alert(
         'Error',
         'Failed to fetch product information. Please try again.',
         [
           {
             text: 'OK',
-            onPress: () => {
-              setScanned(false);
-              setLoading(false);
-            },
+            onPress: () => setScanned(false),
           },
         ]
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -291,14 +283,17 @@ export default function ScanScreen() {
                         placeholderTextColor="#9ca3af"
                       />
                       
-                      {gramsEaten && parseFloat(gramsEaten) > 0 && (
-                        <View style={styles.calculatedProtein}>
-                          <Text style={styles.calculatedLabel}>Total Protein:</Text>
-                          <Text style={styles.calculatedValue}>
-                            {((product.nutriments.proteins_100g * parseFloat(gramsEaten)) / 100).toFixed(1)}g
-                          </Text>
-                        </View>
-                      )}
+                      {gramsEaten && (() => {
+                        const grams = parseFloat(gramsEaten);
+                        return !isNaN(grams) && grams > 0 && (
+                          <View style={styles.calculatedProtein}>
+                            <Text style={styles.calculatedLabel}>Total Protein:</Text>
+                            <Text style={styles.calculatedValue}>
+                              {((product.nutriments.proteins_100g * grams) / 100).toFixed(1)}g
+                            </Text>
+                          </View>
+                        );
+                      })()}
                     </View>
                   )}
                 </>
