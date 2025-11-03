@@ -1,10 +1,24 @@
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useProteinStore } from '../store/proteinStore';
-import { formatProtein, formatDate } from '../utils/helpers';
+import { formatProtein, formatDate, getTodayDateString } from '../utils/helpers';
+import { useMemo } from 'react';
 
 export default function HomeScreen() {
-  const todayData = useProteinStore((state) => state.getTodayData());
+  const today = getTodayDateString();
+  // Select the stored data only (avoid constructing a new object inside selector)
+  const storedTodayData = useProteinStore((state) => state.dailyProteinData[today]);
   const targetProtein = useProteinStore((state) => state.targetProtein);
+
+  // Create a stable fallback object only when necessary
+  const todayData = useMemo(() => {
+    if (storedTodayData) return storedTodayData;
+    return {
+      date: today,
+      totalProtein: 0,
+      targetProtein,
+      meals: [] as any[],
+    };
+  }, [storedTodayData, today, targetProtein]);
 
   const remaining = targetProtein - todayData.totalProtein;
   const percentage = Math.min((todayData.totalProtein / targetProtein) * 100, 100);
