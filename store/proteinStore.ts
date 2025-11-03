@@ -1,12 +1,9 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, Meal, DailyProteinData } from '../types';
+import { getTodayDateString } from '../utils/helpers';
 
 const STORAGE_KEY = '@protein_tracker_data';
-
-const getTodayDateString = () => {
-  return new Date().toISOString().split('T')[0];
-};
 
 export const useProteinStore = create<AppState>((set, get) => ({
   targetProtein: 150,
