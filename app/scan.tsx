@@ -1,10 +1,20 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, TextInput, ScrollView, ActivityIndicator } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
+import { fetchProductByBarcode, OpenFoodFactsProduct } from '../utils/api';
+import { useProteinStore } from '../store/proteinStore';
+import { getTodayDateString } from '../utils/helpers';
+import { useRouter } from 'expo-router';
 
 export default function ScanScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [product, setProduct] = useState<OpenFoodFactsProduct | null>(null);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [gramsEaten, setGramsEaten] = useState('');
+  const addMeal = useProteinStore((state) => state.addMeal);
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -13,22 +23,91 @@ export default function ScanScreen() {
     })();
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+  const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
     setScanned(true);
-    Alert.alert(
-      'Barcode Scanned',
-      `Type: ${type}\nData: ${data}\n\nNote: Barcode lookup functionality would require integration with a food database API (e.g., Open Food Facts).`,
-      [
-        {
-          text: 'Scan Again',
-          onPress: () => setScanned(false),
-        },
-        {
-          text: 'OK',
-          onPress: () => setScanned(false),
-        },
-      ]
-    );
+    setLoading(true);
+    
+    try {
+      const productData = await fetchProductByBarcode(data);
+      
+      if (productData) {
+        setProduct(productData);
+        setShowProductModal(true);
+      } else {
+        Alert.alert(
+          'Product Not Found',
+          `No product information found for barcode: ${data}\n\nThe product may not be in the OpenFoodFacts database.`,
+          [
+            {
+              text: 'Scan Again',
+              onPress: () => {
+                setScanned(false);
+                setLoading(false);
+              },
+            },
+            {
+              text: 'OK',
+              onPress: () => {
+                setScanned(false);
+                setLoading(false);
+              },
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        'Failed to fetch product information. Please try again.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setScanned(false);
+              setLoading(false);
+            },
+          },
+        ]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddMeal = () => {
+    if (!product || !product.nutriments?.proteins_100g) {
+      Alert.alert('Error', 'Product does not have protein information');
+      return;
+    }
+
+    if (!gramsEaten || parseFloat(gramsEaten) <= 0) {
+      Alert.alert('Error', 'Please enter a valid quantity in grams');
+      return;
+    }
+
+    const productName = product.product_name || 'Unknown Product';
+    const proteinPer100g = product.nutriments.proteins_100g;
+
+    addMeal({
+      name: productName,
+      proteinPer100g,
+      gramsEaten: parseFloat(gramsEaten),
+      date: getTodayDateString(),
+    });
+
+    Alert.alert('Success', 'Meal added successfully!');
+    setShowProductModal(false);
+    setProduct(null);
+    setGramsEaten('');
+    setScanned(false);
+    router.push('/');
+  };
+
+  const handleCloseModal = () => {
+    setShowProductModal(false);
+    setProduct(null);
+    setGramsEaten('');
+    setScanned(false);
   };
 
   if (hasPermission === null) {
@@ -77,7 +156,13 @@ export default function ScanScreen() {
               <Text style={styles.instructionText}>
                 Position the barcode within the frame
               </Text>
-              {scanned && (
+              {scanned && loading && (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#3b82f6" />
+                  <Text style={styles.loadingText}>Fetching product info...</Text>
+                </View>
+              )}
+              {scanned && !loading && (
                 <TouchableOpacity
                   style={styles.scanAgainButton}
                   onPress={() => setScanned(false)}
@@ -89,6 +174,158 @@ export default function ScanScreen() {
           </View>
         </View>
       </CameraView>
+
+      {/* Product Information Modal */}
+      <Modal
+        visible={showProductModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleCloseModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView style={styles.modalScroll}>
+              <Text style={styles.modalTitle}>Product Information</Text>
+              
+              {product && (
+                <>
+                  <View style={styles.productInfoSection}>
+                    <Text style={styles.productName}>
+                      {product.product_name || 'Unknown Product'}
+                    </Text>
+                    {product.brands && (
+                      <Text style={styles.productBrand}>{product.brands}</Text>
+                    )}
+                    {product.quantity && (
+                      <Text style={styles.productQuantity}>{product.quantity}</Text>
+                    )}
+                  </View>
+
+                  {product.nutriments && (
+                    <View style={styles.nutrientsSection}>
+                      <Text style={styles.sectionTitle}>Nutritional Information (per 100g)</Text>
+                      
+                      {product.nutriments.proteins_100g !== undefined && (
+                        <View style={styles.nutrientRow}>
+                          <Text style={styles.nutrientLabel}>Protein</Text>
+                          <Text style={styles.nutrientValue}>
+                            {product.nutriments.proteins_100g.toFixed(1)}g
+                          </Text>
+                        </View>
+                      )}
+                      
+                      {product.nutriments['energy-kcal_100g'] !== undefined && (
+                        <View style={styles.nutrientRow}>
+                          <Text style={styles.nutrientLabel}>Energy</Text>
+                          <Text style={styles.nutrientValue}>
+                            {product.nutriments['energy-kcal_100g'].toFixed(0)} kcal
+                          </Text>
+                        </View>
+                      )}
+                      
+                      {product.nutriments.carbohydrates_100g !== undefined && (
+                        <View style={styles.nutrientRow}>
+                          <Text style={styles.nutrientLabel}>Carbohydrates</Text>
+                          <Text style={styles.nutrientValue}>
+                            {product.nutriments.carbohydrates_100g.toFixed(1)}g
+                          </Text>
+                        </View>
+                      )}
+                      
+                      {product.nutriments.sugars_100g !== undefined && (
+                        <View style={styles.nutrientRow}>
+                          <Text style={styles.nutrientLabel}>  - Sugars</Text>
+                          <Text style={styles.nutrientValue}>
+                            {product.nutriments.sugars_100g.toFixed(1)}g
+                          </Text>
+                        </View>
+                      )}
+                      
+                      {product.nutriments.fat_100g !== undefined && (
+                        <View style={styles.nutrientRow}>
+                          <Text style={styles.nutrientLabel}>Fat</Text>
+                          <Text style={styles.nutrientValue}>
+                            {product.nutriments.fat_100g.toFixed(1)}g
+                          </Text>
+                        </View>
+                      )}
+                      
+                      {product.nutriments.fiber_100g !== undefined && (
+                        <View style={styles.nutrientRow}>
+                          <Text style={styles.nutrientLabel}>Fiber</Text>
+                          <Text style={styles.nutrientValue}>
+                            {product.nutriments.fiber_100g.toFixed(1)}g
+                          </Text>
+                        </View>
+                      )}
+                      
+                      {product.nutriments.salt_100g !== undefined && (
+                        <View style={styles.nutrientRow}>
+                          <Text style={styles.nutrientLabel}>Salt</Text>
+                          <Text style={styles.nutrientValue}>
+                            {product.nutriments.salt_100g.toFixed(2)}g
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+
+                  {!product.nutriments?.proteins_100g && (
+                    <View style={styles.warningBox}>
+                      <Text style={styles.warningText}>
+                        ⚠️ This product does not have protein information available.
+                      </Text>
+                    </View>
+                  )}
+
+                  {product.nutriments?.proteins_100g !== undefined && (
+                    <View style={styles.quantitySection}>
+                      <Text style={styles.sectionTitle}>Add to Meal</Text>
+                      <Text style={styles.inputLabel}>Quantity eaten (grams)</Text>
+                      <TextInput
+                        style={styles.quantityInput}
+                        placeholder="e.g., 150"
+                        value={gramsEaten}
+                        onChangeText={setGramsEaten}
+                        keyboardType="decimal-pad"
+                        placeholderTextColor="#9ca3af"
+                      />
+                      
+                      {gramsEaten && parseFloat(gramsEaten) > 0 && (
+                        <View style={styles.calculatedProtein}>
+                          <Text style={styles.calculatedLabel}>Total Protein:</Text>
+                          <Text style={styles.calculatedValue}>
+                            {((product.nutriments.proteins_100g * parseFloat(gramsEaten)) / 100).toFixed(1)}g
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </>
+              )}
+            </ScrollView>
+
+            <View style={styles.modalButtons}>
+              {product?.nutriments?.proteins_100g !== undefined && (
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={handleAddMeal}
+                >
+                  <Text style={styles.addButtonText}>Add to Meal</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCloseModal}
+              >
+                <Text style={styles.cancelButtonText}>
+                  {product?.nutriments?.proteins_100g !== undefined ? 'Cancel' : 'Close'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -199,6 +436,161 @@ const styles = StyleSheet.create({
   },
   scanAgainText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  loadingText: {
+    color: '#d1d5db',
+    fontSize: 14,
+    marginTop: 12,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '90%',
+    paddingTop: 20,
+  },
+  modalScroll: {
+    paddingHorizontal: 20,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 20,
+  },
+  productInfoSection: {
+    marginBottom: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  productName: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  productBrand: {
+    fontSize: 16,
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  productQuantity: {
+    fontSize: 14,
+    color: '#9ca3af',
+  },
+  nutrientsSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 12,
+  },
+  nutrientRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  nutrientLabel: {
+    fontSize: 14,
+    color: '#374151',
+  },
+  nutrientValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3b82f6',
+  },
+  warningBox: {
+    backgroundColor: '#fef3c7',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#fcd34d',
+  },
+  warningText: {
+    fontSize: 14,
+    color: '#92400e',
+  },
+  quantitySection: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  quantityInput: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#1f2937',
+  },
+  calculatedProtein: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  calculatedLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e40af',
+  },
+  calculatedValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#3b82f6',
+  },
+  modalButtons: {
+    padding: 20,
+    paddingBottom: 30,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    gap: 12,
+  },
+  addButton: {
+    backgroundColor: '#3b82f6',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cancelButton: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#374151',
     fontSize: 16,
     fontWeight: '600',
   },
