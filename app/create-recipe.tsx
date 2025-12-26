@@ -6,6 +6,9 @@ import { RecipeIngredient } from '../types';
 import { useRouter } from 'expo-router';
 import { generateUniqueId } from '../utils/helpers';
 
+const SEARCH_PAGE_SIZE = 10;
+const SEARCH_PAGE_NUMBER = 1;
+
 export default function CreateRecipeScreen() {
   const [recipeName, setRecipeName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,7 +39,7 @@ export default function CreateRecipeScreen() {
 
     setSearching(true);
     try {
-      const results = await searchProducts(searchTerm, 1, 10);
+      const results = await searchProducts(searchTerm, SEARCH_PAGE_NUMBER, SEARCH_PAGE_SIZE);
       setSearchResults(results);
       if (results.length === 0) {
         Alert.alert('No Results', 'No products found for your search term');
