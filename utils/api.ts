@@ -93,7 +93,7 @@ export async function searchProducts(
       
       // Filter by protein range if specified
       if (filters?.minProtein !== undefined || filters?.maxProtein !== undefined) {
-        products = products.filter(product => {
+        products = products.filter((product: OpenFoodFactsProduct) => {
           const protein = product.nutriments?.proteins_100g;
           if (protein === undefined) return false;
           
