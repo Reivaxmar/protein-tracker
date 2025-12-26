@@ -4,10 +4,10 @@ A React Native Expo app for tracking daily protein intake.
 
 ## Features
 
-- 📊 **Home Screen**: View daily protein consumption and remaining allowance
+- 📊 **Home Screen**: View daily protein consumption and remaining allowance below your limit
 - 📷 **Scan Screen**: Use barcode scanner to scan food items (requires camera permissions)
 - ➕ **Add Meal Screen**: Manually add foods with name, protein per 100g, and grams eaten
-- ⚙️ **Settings Screen**: Configure daily protein target
+- ⚙️ **Settings Screen**: Configure daily protein limit
 
 ## Technology Stack
 
@@ -65,11 +65,11 @@ protein-tracker/
 ## Usage
 
 ### Home Screen
-- View your daily protein goal
+- View your daily protein limit
 - See total protein consumed today
-- Check remaining protein allowance
+- Check remaining allowance below your limit
 - View all meals added today
-- Progress bar shows completion percentage
+- Progress bar shows percentage of daily limit (with warnings when approaching or exceeding)
 
 ### Add Meal
 1. Enter the food name
@@ -92,7 +92,7 @@ protein-tracker/
 8. The meal is automatically saved and your daily protein total is updated
 
 ### Settings
-- Adjust your daily protein target (recommended: 0.8-1g per kg for maintenance, 1.6-2.2g per kg for muscle building)
+- Set your daily protein limit to help manage your protein intake
 - View app information and features
 
 ## Data Persistence
@@ -105,7 +105,7 @@ The app uses Zustand for global state management with the following features:
 - Track meals by date
 - Calculate daily protein totals
 - Persist data to AsyncStorage
-- Update target protein goals
+- Update maximum protein limit
 
 ## Development
 

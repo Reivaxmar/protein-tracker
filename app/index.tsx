@@ -22,6 +22,8 @@ export default function HomeScreen() {
 
   const remaining = targetProtein - todayData.totalProtein;
   const percentage = Math.min((todayData.totalProtein / targetProtein) * 100, 100);
+  const isNearLimit = percentage >= 80;
+  const isOverLimit = todayData.totalProtein > targetProtein;
 
   return (
     <ScrollView style={styles.container}>
@@ -41,13 +43,15 @@ export default function HomeScreen() {
             </View>
             
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{formatProtein(remaining)}</Text>
-              <Text style={styles.statLabel}>Remaining</Text>
+              <Text style={[styles.statValue, remaining < 0 && styles.statValueOver]}>
+                {formatProtein(Math.abs(remaining))}
+              </Text>
+              <Text style={styles.statLabel}>{remaining >= 0 ? 'Below Limit' : 'Over Limit'}</Text>
             </View>
             
             <View style={styles.statBox}>
               <Text style={styles.statValue}>{formatProtein(targetProtein)}</Text>
-              <Text style={styles.statLabel}>Target</Text>
+              <Text style={styles.statLabel}>Daily Limit</Text>
             </View>
           </View>
 
@@ -56,11 +60,16 @@ export default function HomeScreen() {
               <View 
                 style={[
                   styles.progressBarFill, 
-                  { width: `${percentage}%` }
+                  { width: `${percentage}%` },
+                  isNearLimit && !isOverLimit && styles.progressBarWarning,
+                  isOverLimit && styles.progressBarDanger,
                 ]} 
               />
             </View>
-            <Text style={styles.progressText}>{percentage.toFixed(0)}% Complete</Text>
+            <Text style={styles.progressText}>
+              {percentage.toFixed(0)}% of Daily Limit
+              {isOverLimit && ' (Over Limit!)'}
+            </Text>
           </View>
         </View>
 
@@ -159,6 +168,15 @@ const styles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     backgroundColor: '#3b82f6',
+  },
+  progressBarWarning: {
+    backgroundColor: '#f59e0b',
+  },
+  progressBarDanger: {
+    backgroundColor: '#ef4444',
+  },
+  statValueOver: {
+    color: '#ef4444',
   },
   progressText: {
     fontSize: 14,

@@ -10,21 +10,21 @@ export default function SettingsScreen() {
   const handleSave = () => {
     const newTarget = parseFloat(inputValue);
     if (isNaN(newTarget) || newTarget <= 0) {
-      Alert.alert('Error', 'Please enter a valid target protein value');
+      Alert.alert('Error', 'Please enter a valid protein limit value');
       return;
     }
     setTargetProtein(newTarget);
-    Alert.alert('Success', 'Target protein updated successfully!');
+    Alert.alert('Success', 'Protein limit updated successfully!');
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.title}>Daily Protein Target</Text>
+          <Text style={styles.title}>Daily Protein Limit</Text>
           
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Target Protein (grams per day)</Text>
+            <Text style={styles.label}>Maximum Protein (grams per day)</Text>
             <TextInput
               style={styles.input}
               placeholder="e.g., 150"
@@ -34,8 +34,8 @@ export default function SettingsScreen() {
               placeholderTextColor="#9ca3af"
             />
             <Text style={styles.hint}>
-              Recommended: 0.8-1g per kg of body weight for maintenance,{'\n'}
-              1.6-2.2g per kg for muscle building
+              Set your daily protein limit. The app will track your intake{'\n'}
+              and alert you when approaching or exceeding your limit.
             </Text>
           </View>
 
@@ -43,15 +43,15 @@ export default function SettingsScreen() {
             style={styles.button}
             onPress={handleSave}
           >
-            <Text style={styles.buttonText}>Save Target</Text>
+            <Text style={styles.buttonText}>Save Limit</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>About Protein Tracker</Text>
           <Text style={styles.infoText}>
-            Track your daily protein intake to meet your fitness goals. 
-            Add meals manually or scan barcodes to quickly log your protein consumption.
+            Track your daily protein intake to stay within your limit. 
+            Add meals manually or scan barcodes to monitor your protein consumption.
           </Text>
         </View>
 
@@ -61,7 +61,7 @@ export default function SettingsScreen() {
             ✓ Track daily protein intake{'\n'}
             ✓ Add meals with custom protein values{'\n'}
             ✓ Scan barcodes (requires food database integration){'\n'}
-            ✓ View progress and remaining allowance{'\n'}
+            ✓ Monitor remaining allowance below your limit{'\n'}
             ✓ Data persists across app restarts
           </Text>
         </View>
