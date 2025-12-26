@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, Meal, DailyProteinData, Recipe } from '../types';
-import { getTodayDateString } from '../utils/helpers';
+import { getTodayDateString, generateUniqueId } from '../utils/helpers';
 
 const STORAGE_KEY = '@protein_tracker_data';
 
@@ -14,7 +14,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
   addMeal: (meal) => {
     const newMeal: Meal = {
       ...meal,
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       totalProtein: (meal.proteinPer100g * meal.gramsEaten) / 100,
       timestamp: Date.now(),
     };
@@ -68,7 +68,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
   addRecipe: (recipe) => {
     const newRecipe: Recipe = {
       ...recipe,
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       createdAt: Date.now(),
     };
 
@@ -87,7 +87,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
     get().saveData();
   },
 
-  addMealFromRecipe: (recipeId, servings = 1) => {
+  addMealFromRecipe: (recipeId, servings: number = 1) => {
     const state = get();
     const recipe = state.recipes.find((r) => r.id === recipeId);
     

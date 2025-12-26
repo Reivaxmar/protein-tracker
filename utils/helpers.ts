@@ -1,3 +1,9 @@
+let idCounter = 0;
+
+export const generateUniqueId = () => {
+  return `${Date.now()}-${++idCounter}`;
+};
+
 export const getTodayDateString = () => {
   return new Date().toISOString().split('T')[0];
 };

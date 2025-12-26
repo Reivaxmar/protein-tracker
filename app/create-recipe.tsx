@@ -1,9 +1,10 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, FlatList } from 'react-native';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { searchProducts, OpenFoodFactsProduct } from '../utils/api';
 import { RecipeIngredient } from '../types';
 import { useRouter } from 'expo-router';
+import { generateUniqueId } from '../utils/helpers';
 
 export default function CreateRecipeScreen() {
   const [recipeName, setRecipeName] = useState('');
@@ -15,6 +16,17 @@ export default function CreateRecipeScreen() {
   const [gramsForIngredient, setGramsForIngredient] = useState('');
   const addRecipe = useProteinStore((state) => state.addRecipe);
   const router = useRouter();
+
+  const calculatedProteinForIngredient = useMemo(() => {
+    if (!gramsForIngredient || !selectedProduct?.nutriments?.proteins_100g) {
+      return null;
+    }
+    const grams = parseFloat(gramsForIngredient);
+    if (isNaN(grams) || grams <= 0) {
+      return null;
+    }
+    return ((selectedProduct.nutriments.proteins_100g * grams) / 100).toFixed(1);
+  }, [gramsForIngredient, selectedProduct]);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -63,7 +75,7 @@ export default function CreateRecipeScreen() {
     const totalProtein = (proteinPer100g * grams) / 100;
 
     const newIngredient: RecipeIngredient = {
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       name: selectedProduct.product_name || 'Unknown Product',
       proteinPer100g,
       gramsInRecipe: grams,
@@ -212,17 +224,14 @@ export default function CreateRecipeScreen() {
                 />
               </View>
 
-              {gramsForIngredient && selectedProduct.nutriments?.proteins_100g && (() => {
-                const grams = parseFloat(gramsForIngredient);
-                return !isNaN(grams) && grams > 0 && (
-                  <View style={styles.calculatedProtein}>
-                    <Text style={styles.calculatedLabel}>Protein in this amount:</Text>
-                    <Text style={styles.calculatedValue}>
-                      {((selectedProduct.nutriments.proteins_100g * grams) / 100).toFixed(1)}g
-                    </Text>
-                  </View>
-                );
-              })()}
+              {calculatedProteinForIngredient && (
+                <View style={styles.calculatedProtein}>
+                  <Text style={styles.calculatedLabel}>Protein in this amount:</Text>
+                  <Text style={styles.calculatedValue}>
+                    {calculatedProteinForIngredient}g
+                  </Text>
+                </View>
+              )}
 
               <TouchableOpacity
                 style={styles.addIngredientButton}
