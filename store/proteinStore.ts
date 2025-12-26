@@ -87,7 +87,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
     get().saveData();
   },
 
-  addMealFromRecipe: (recipeId, servings: number = 1) => {
+  addMealFromRecipe: (recipeId, servingsOrGrams: number = 1, useGrams: boolean = false) => {
     const state = get();
     const recipe = state.recipes.find((r) => r.id === recipeId);
     
@@ -96,12 +96,27 @@ export const useProteinStore = create<AppState>((set, get) => ({
       return;
     }
 
-    const totalProtein = recipe.totalProtein * servings;
-    const totalGrams = recipe.totalGrams * servings;
+    let totalProtein: number;
+    let totalGrams: number;
+    let mealName: string;
+
+    if (useGrams) {
+      // Calculate based on grams
+      totalGrams = servingsOrGrams;
+      const proteinPer100g = recipe.totalGrams > 0 ? (recipe.totalProtein / recipe.totalGrams) * 100 : 0;
+      totalProtein = (proteinPer100g * totalGrams) / 100;
+      mealName = `${recipe.name} (${servingsOrGrams}g)`;
+    } else {
+      // Calculate based on servings
+      totalProtein = recipe.totalProtein * servingsOrGrams;
+      totalGrams = recipe.totalGrams * servingsOrGrams;
+      mealName = `${recipe.name}${servingsOrGrams > 1 ? ` (x${servingsOrGrams})` : ''}`;
+    }
+
     const proteinPer100g = totalGrams > 0 ? (totalProtein / totalGrams) * 100 : 0;
 
     get().addMeal({
-      name: `${recipe.name}${servings > 1 ? ` (x${servings})` : ''}`,
+      name: mealName,
       proteinPer100g,
       gramsEaten: totalGrams,
       date: getTodayDateString(),

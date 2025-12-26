@@ -49,22 +49,35 @@ export async function fetchProductByBarcode(
   }
 }
 
+export interface ProductSearchFilters {
+  category?: string;
+  minProtein?: number;
+  maxProtein?: number;
+}
+
 /**
  * Search for products by name in OpenFoodFacts database
  * @param searchTerm The search term
  * @param page Page number (default: 1)
  * @param pageSize Number of results per page (default: 20)
+ * @param filters Optional filters for category and protein range
  * @returns Array of products matching the search term
  */
 export async function searchProducts(
   searchTerm: string,
   page: number = 1,
-  pageSize: number = 20
+  pageSize: number = 20,
+  filters?: ProductSearchFilters
 ): Promise<OpenFoodFactsProduct[]> {
   try {
-    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(
+    let url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(
       searchTerm
     )}&page=${page}&page_size=${pageSize}&json=true`;
+    
+    // Add category filter if specified
+    if (filters?.category) {
+      url += `&tagtype_0=categories&tag_contains_0=contains&tag_0=${encodeURIComponent(filters.category)}`;
+    }
     
     const response = await fetch(url);
     
@@ -76,7 +89,25 @@ export async function searchProducts(
     const data = await response.json();
     
     if (data.products && Array.isArray(data.products)) {
-      return data.products;
+      let products = data.products;
+      
+      // Filter by protein range if specified
+      if (filters?.minProtein !== undefined || filters?.maxProtein !== undefined) {
+        products = products.filter(product => {
+          const protein = product.nutriments?.proteins_100g;
+          if (protein === undefined) return false;
+          
+          if (filters.minProtein !== undefined && protein < filters.minProtein) {
+            return false;
+          }
+          if (filters.maxProtein !== undefined && protein > filters.maxProtein) {
+            return false;
+          }
+          return true;
+        });
+      }
+      
+      return products;
     }
 
     return [];

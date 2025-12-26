@@ -1,15 +1,31 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, FlatList } from 'react-native';
-import { useState, useMemo } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, FlatList, Modal } from 'react-native';
+import { useState, useMemo, useEffect } from 'react';
 import { useProteinStore } from '../store/proteinStore';
-import { searchProducts, OpenFoodFactsProduct } from '../utils/api';
+import { searchProducts, OpenFoodFactsProduct, fetchProductByBarcode } from '../utils/api';
 import { RecipeIngredient } from '../types';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { generateUniqueId } from '../utils/helpers';
+import { CameraView, Camera } from 'expo-camera';
 
 const SEARCH_PAGE_SIZE = 10;
 const SEARCH_PAGE_NUMBER = 1;
 
+// Common food categories
+const FOOD_CATEGORIES = [
+  { label: 'All', value: '' },
+  { label: 'Meats', value: 'meats' },
+  { label: 'Dairy', value: 'dairies' },
+  { label: 'Fish', value: 'fish' },
+  { label: 'Vegetables', value: 'vegetables' },
+  { label: 'Fruits', value: 'fruits' },
+  { label: 'Grains', value: 'cereals-and-potatoes' },
+  { label: 'Legumes', value: 'legumes' },
+];
+
 export default function CreateRecipeScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  
   const [recipeName, setRecipeName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<OpenFoodFactsProduct[]>([]);
@@ -17,8 +33,22 @@ export default function CreateRecipeScreen() {
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<OpenFoodFactsProduct | null>(null);
   const [gramsForIngredient, setGramsForIngredient] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [minProtein, setMinProtein] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scanned, setScanned] = useState(false);
+  const [scanLoading, setScanLoading] = useState(false);
+  
   const addRecipe = useProteinStore((state) => state.addRecipe);
-  const router = useRouter();
+
+  // Handle barcode from scan screen
+  useEffect(() => {
+    if (params.scannedBarcode) {
+      handleBarcodeScanned(params.scannedBarcode as string);
+    }
+  }, [params.scannedBarcode]);
 
   const calculatedProteinForIngredient = useMemo(() => {
     if (!gramsForIngredient || !selectedProduct?.nutriments?.proteins_100g) {
@@ -31,6 +61,61 @@ export default function CreateRecipeScreen() {
     return ((selectedProduct.nutriments.proteins_100g * grams) / 100).toFixed(1);
   }, [gramsForIngredient, selectedProduct]);
 
+  const handleBarcodeScanned = async (barcode: string) => {
+    setScanLoading(true);
+    setScanned(true);
+    
+    try {
+      const productData = await fetchProductByBarcode(barcode);
+      
+      if (productData) {
+        setSelectedProduct(productData);
+        setShowScanner(false);
+        setScanned(false);
+        setScanLoading(false);
+      } else {
+        setScanLoading(false);
+        Alert.alert(
+          'Product Not Found',
+          `No product information found for barcode: ${barcode}`,
+          [
+            {
+              text: 'Try Again',
+              onPress: () => setScanned(false),
+            },
+            {
+              text: 'Cancel',
+              onPress: () => {
+                setShowScanner(false);
+                setScanned(false);
+              },
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      setScanLoading(false);
+      Alert.alert('Error', 'Failed to fetch product information. Please try again.', [
+        {
+          text: 'OK',
+          onPress: () => setScanned(false),
+        },
+      ]);
+    }
+  };
+
+  const openScanner = async () => {
+    const { status } = await Camera.requestCameraPermissionsAsync();
+    setHasPermission(status === 'granted');
+    
+    if (status === 'granted') {
+      setShowScanner(true);
+      setScanned(false);
+    } else {
+      Alert.alert('Permission Required', 'Camera permission is required to scan barcodes.');
+    }
+  };
+
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       Alert.alert('Error', 'Please enter a search term');
@@ -39,10 +124,20 @@ export default function CreateRecipeScreen() {
 
     setSearching(true);
     try {
-      const results = await searchProducts(searchTerm, SEARCH_PAGE_NUMBER, SEARCH_PAGE_SIZE);
+      const filters: any = {};
+      
+      if (selectedCategory) {
+        filters.category = selectedCategory;
+      }
+      
+      if (minProtein && parseFloat(minProtein) > 0) {
+        filters.minProtein = parseFloat(minProtein);
+      }
+      
+      const results = await searchProducts(searchTerm, SEARCH_PAGE_NUMBER, SEARCH_PAGE_SIZE, filters);
       setSearchResults(results);
       if (results.length === 0) {
-        Alert.alert('No Results', 'No products found for your search term');
+        Alert.alert('No Results', 'No products found matching your criteria');
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to search for products');
@@ -176,6 +271,59 @@ export default function CreateRecipeScreen() {
             </TouchableOpacity>
           </View>
 
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => setShowFilters(!showFilters)}
+            >
+              <Text style={styles.filterButtonText}>
+                {showFilters ? '▼ Filters' : '▶ Filters'}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.scanButton}
+              onPress={openScanner}
+            >
+              <Text style={styles.scanButtonText}>📷 Scan Barcode</Text>
+            </TouchableOpacity>
+          </View>
+
+          {showFilters && (
+            <View style={styles.filtersContainer}>
+              <Text style={styles.filterLabel}>Category</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+                {FOOD_CATEGORIES.map((category) => (
+                  <TouchableOpacity
+                    key={category.value}
+                    style={[
+                      styles.categoryChip,
+                      selectedCategory === category.value && styles.categoryChipActive
+                    ]}
+                    onPress={() => setSelectedCategory(category.value)}
+                  >
+                    <Text style={[
+                      styles.categoryChipText,
+                      selectedCategory === category.value && styles.categoryChipTextActive
+                    ]}>
+                      {category.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              
+              <Text style={styles.filterLabel}>Minimum Protein (g/100g)</Text>
+              <TextInput
+                style={styles.filterInput}
+                placeholder="e.g., 10"
+                value={minProtein}
+                onChangeText={setMinProtein}
+                keyboardType="decimal-pad"
+                placeholderTextColor="#9ca3af"
+              />
+            </View>
+          )}
+
           {searchResults.length > 0 && (
             <View style={styles.resultsContainer}>
               <Text style={styles.resultsTitle}>Search Results:</Text>
@@ -305,11 +453,82 @@ export default function CreateRecipeScreen() {
           <Text style={styles.infoTitle}>💡 Tips</Text>
           <Text style={styles.infoText}>
             • Search for ingredients by name{'\n'}
+            • Use filters to narrow down results{'\n'}
+            • Scan barcodes to quickly add packaged foods{'\n'}
             • Add multiple ingredients to build your recipe{'\n'}
             • Once saved, you can quickly log the recipe as a meal
           </Text>
         </View>
       </View>
+
+      {/* Barcode Scanner Modal */}
+      <Modal
+        visible={showScanner}
+        animationType="slide"
+        onRequestClose={() => setShowScanner(false)}
+      >
+        <View style={styles.scannerContainer}>
+          {hasPermission === false ? (
+            <View style={styles.permissionDenied}>
+              <Text style={styles.permissionText}>Camera permission is required</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowScanner(false)}
+              >
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <CameraView
+                style={styles.camera}
+                onBarcodeScanned={scanned ? undefined : ({ data }) => handleBarcodeScanned(data)}
+                barcodeScannerSettings={{
+                  barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'code39'],
+                }}
+              >
+                <View style={styles.scannerOverlay}>
+                  <View style={styles.scannerHeader}>
+                    <Text style={styles.scannerTitle}>Scan Product Barcode</Text>
+                    <TouchableOpacity
+                      style={styles.closeScannerButton}
+                      onPress={() => setShowScanner(false)}
+                    >
+                      <Text style={styles.closeScannerText}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                  
+                  <View style={styles.scannerMiddle}>
+                    <View style={styles.scanArea}>
+                      <View style={[styles.corner, styles.topLeftCorner]} />
+                      <View style={[styles.corner, styles.topRightCorner]} />
+                      <View style={[styles.corner, styles.bottomLeftCorner]} />
+                      <View style={[styles.corner, styles.bottomRightCorner]} />
+                    </View>
+                  </View>
+                  
+                  <View style={styles.scannerBottom}>
+                    {scanLoading && (
+                      <View style={styles.scanLoadingContainer}>
+                        <ActivityIndicator size="large" color="#3b82f6" />
+                        <Text style={styles.scanLoadingText}>Fetching product info...</Text>
+                      </View>
+                    )}
+                    {scanned && !scanLoading && (
+                      <TouchableOpacity
+                        style={styles.scanAgainButton}
+                        onPress={() => setScanned(false)}
+                      >
+                        <Text style={styles.scanAgainText}>Tap to Scan Again</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              </CameraView>
+            </>
+          )}
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -365,7 +584,7 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 8,
     gap: 8,
   },
   searchInput: {
@@ -390,6 +609,84 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  filterButton: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  filterButtonText: {
+    color: '#374151',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  scanButton: {
+    flex: 1,
+    backgroundColor: '#10b981',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  scanButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  filtersContainer: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  categoryScroll: {
+    marginBottom: 8,
+  },
+  categoryChip: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
+  },
+  categoryChipActive: {
+    backgroundColor: '#3b82f6',
+    borderColor: '#3b82f6',
+  },
+  categoryChipText: {
+    fontSize: 14,
+    color: '#374151',
+  },
+  categoryChipTextActive: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  filterInput: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#1f2937',
   },
   resultsContainer: {
     marginTop: 8,
@@ -585,5 +882,128 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#78350f',
     lineHeight: 20,
+  },
+  scannerContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  permissionDenied: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1f2937',
+    padding: 20,
+  },
+  permissionText: {
+    fontSize: 18,
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  closeButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  camera: {
+    flex: 1,
+  },
+  scannerOverlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  scannerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 50,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  },
+  scannerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  closeScannerButton: {
+    padding: 8,
+  },
+  closeScannerText: {
+    fontSize: 24,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  scannerMiddle: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scanArea: {
+    width: 250,
+    height: 250,
+    position: 'relative',
+  },
+  corner: {
+    position: 'absolute',
+    width: 40,
+    height: 40,
+    borderColor: '#3b82f6',
+    borderWidth: 4,
+  },
+  topLeftCorner: {
+    top: 0,
+    left: 0,
+    borderBottomWidth: 0,
+    borderRightWidth: 0,
+  },
+  topRightCorner: {
+    top: 0,
+    right: 0,
+    borderBottomWidth: 0,
+    borderLeftWidth: 0,
+  },
+  bottomLeftCorner: {
+    bottom: 0,
+    left: 0,
+    borderTopWidth: 0,
+    borderRightWidth: 0,
+  },
+  bottomRightCorner: {
+    bottom: 0,
+    right: 0,
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+  },
+  scannerBottom: {
+    padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    minHeight: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scanLoadingContainer: {
+    alignItems: 'center',
+  },
+  scanLoadingText: {
+    color: '#d1d5db',
+    fontSize: 14,
+    marginTop: 12,
+  },
+  scanAgainButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  scanAgainText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
