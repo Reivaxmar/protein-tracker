@@ -30,6 +30,7 @@ export interface Recipe {
   totalProtein: number;
   totalGrams: number;
   createdAt: number;
+  servingSize?: number; // Default serving size in grams
 }
 
 export interface AppState {
@@ -42,7 +43,7 @@ export interface AppState {
   getTodayData: () => DailyProteinData;
   addRecipe: (recipe: Omit<Recipe, 'id' | 'createdAt'>) => void;
   deleteRecipe: (recipeId: string) => void;
-  addMealFromRecipe: (recipeId: string, servings: number) => void;
+  addMealFromRecipe: (recipeId: string, servingsOrGrams: number, useGrams?: boolean) => void;
   loadData: () => Promise<void>;
   saveData: () => Promise<void>;
 }

@@ -36,54 +36,82 @@ export default function RecipesScreen() {
   };
 
   const handleLogRecipe = (recipe: Recipe) => {
-    if (typeof (Alert as any).prompt === 'function') {
-      Alert.prompt(
-        'Log Recipe',
-        `How many servings of "${recipe.name}" did you eat?`,
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Log',
-            onPress: (servings?: string) => handleSubmitPrompt(servings, recipe),
-          },
-        ],
-        'plain-text',
-        '1'
-      );
-    } else {
-      setPromptRecipe(recipe);
-      setPromptValue('1');
-      setPromptVisible(true);
-    }
-  };
-
-  const handleSubmitPrompt = (servingsInput?: string | null, recipeParam?: Recipe | null) => {
-    const recipeToUse = recipeParam || promptRecipe;
-    const servingsStr = typeof servingsInput === 'string' ? servingsInput : promptValue;
-    if (!recipeToUse) return;
-    const servingCount = parseFloat(servingsStr || '1');
-    if (isNaN(servingCount) || servingCount <= 0) {
-      Alert.alert('Error', 'Please enter a valid number of servings');
-      return;
-    }
-    addMealFromRecipe(recipeToUse.id, servingCount);
-    setPromptVisible(false);
-    setPromptRecipe(null);
-    Alert.alert(
-      'Success',
-      `Added ${servingCount} serving${servingCount > 1 ? 's' : ''} of ${recipeToUse.name} (${(recipeToUse.totalProtein * servingCount).toFixed(1)}g protein)`,
+    Alert.prompt(
+      'Log Recipe',
+      `How many servings of "${recipe.name}" did you eat?`,
       [
         {
-          text: 'View Home',
-          onPress: () => router.push('/'),
+          text: 'Cancel',
+          style: 'cancel',
         },
         {
-          text: 'OK',
+          text: 'Log',
+          onPress: (servings?: string) => {
+            const servingCount = parseFloat(servings || '1');
+            if (isNaN(servingCount) || servingCount <= 0) {
+              Alert.alert('Error', 'Please enter a valid number of servings');
+              return;
+            }
+            addMealFromRecipe(recipe.id, servingCount);
+            Alert.alert(
+              'Success',
+              `Added ${servingCount} serving${servingCount > 1 ? 's' : ''} of ${recipe.name} (${(recipe.totalProtein * servingCount).toFixed(1)}g protein)`,
+              [
+                {
+                  text: 'View Home',
+                  onPress: () => router.push('/'),
+                },
+                {
+                  text: 'OK',
+                },
+              ]
+            );
+          },
         },
-      ]
+      ],
+      'plain-text',
+      '1'
+    );
+  };
+
+  const promptForGrams = (recipe: Recipe) => {
+    Alert.prompt(
+      'Log by Weight',
+      `How many grams of "${recipe.name}"?\n\n(Total recipe: ${recipe.totalGrams}g)`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Log',
+          onPress: (grams?: string) => {
+            const gramsAmount = parseFloat(grams || '0');
+            if (isNaN(gramsAmount) || gramsAmount <= 0) {
+              Alert.alert('Error', 'Please enter a valid weight in grams');
+              return;
+            }
+            addMealFromRecipe(recipe.id, gramsAmount, true);
+            const proteinPer100g = recipe.totalGrams > 0 ? (recipe.totalProtein / recipe.totalGrams) * 100 : 0;
+            const proteinAmount = (proteinPer100g * gramsAmount) / 100;
+            Alert.alert(
+              'Success',
+              `Added ${gramsAmount}g of ${recipe.name} (${proteinAmount.toFixed(1)}g protein)`,
+              [
+                {
+                  text: 'View Home',
+                  onPress: () => router.push('/'),
+                },
+                {
+                  text: 'OK',
+                },
+              ]
+            );
+          },
+        },
+      ],
+      'plain-text',
+      recipe.totalGrams.toString()
     );
   };
 
