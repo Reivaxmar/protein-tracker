@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState, Meal, DailyProteinData } from '../types';
+import { AppState, Meal, DailyProteinData, Recipe } from '../types';
 import { getTodayDateString } from '../utils/helpers';
 
 const STORAGE_KEY = '@protein_tracker_data';
@@ -9,6 +9,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
   targetProtein: 150,
   meals: [],
   dailyProteinData: {},
+  recipes: [],
 
   addMeal: (meal) => {
     const newMeal: Meal = {
@@ -64,6 +65,49 @@ export const useProteinStore = create<AppState>((set, get) => ({
     };
   },
 
+  addRecipe: (recipe) => {
+    const newRecipe: Recipe = {
+      ...recipe,
+      id: Date.now().toString(),
+      createdAt: Date.now(),
+    };
+
+    set((state) => ({
+      recipes: [...state.recipes, newRecipe],
+    }));
+
+    get().saveData();
+  },
+
+  deleteRecipe: (recipeId) => {
+    set((state) => ({
+      recipes: state.recipes.filter((r) => r.id !== recipeId),
+    }));
+
+    get().saveData();
+  },
+
+  addMealFromRecipe: (recipeId, servings = 1) => {
+    const state = get();
+    const recipe = state.recipes.find((r) => r.id === recipeId);
+    
+    if (!recipe) {
+      console.error('Recipe not found:', recipeId);
+      return;
+    }
+
+    const totalProtein = recipe.totalProtein * servings;
+    const totalGrams = recipe.totalGrams * servings;
+    const proteinPer100g = totalGrams > 0 ? (totalProtein / totalGrams) * 100 : 0;
+
+    get().addMeal({
+      name: `${recipe.name}${servings > 1 ? ` (x${servings})` : ''}`,
+      proteinPer100g,
+      gramsEaten: totalGrams,
+      date: getTodayDateString(),
+    });
+  },
+
   loadData: async () => {
     try {
       const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
@@ -73,6 +117,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
           targetProtein: data.targetProtein || 150,
           meals: data.meals || [],
           dailyProteinData: data.dailyProteinData || {},
+          recipes: data.recipes || [],
         });
       }
     } catch (e) {
@@ -87,6 +132,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
         targetProtein: state.targetProtein,
         meals: state.meals,
         dailyProteinData: state.dailyProteinData,
+        recipes: state.recipes,
       };
       const jsonValue = JSON.stringify(data);
       await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
