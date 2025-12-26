@@ -96,9 +96,9 @@ export const useProteinStore = create<AppState>((set, get) => ({
       return;
     }
 
-    let totalProtein: number;
-    let totalGrams: number;
-    let mealName: string;
+    let totalProtein = 0;
+    let totalGrams = 0;
+    let mealName = '';
 
     if (useGrams) {
       // Calculate based on grams

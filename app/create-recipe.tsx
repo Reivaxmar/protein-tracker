@@ -1,9 +1,9 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, FlatList, Modal } from 'react-native';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { searchProducts, OpenFoodFactsProduct, fetchProductByBarcode } from '../utils/api';
 import { RecipeIngredient } from '../types';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { generateUniqueId } from '../utils/helpers';
 import { CameraView, Camera } from 'expo-camera';
 
@@ -24,7 +24,6 @@ const FOOD_CATEGORIES = [
 
 export default function CreateRecipeScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams();
   
   const [recipeName, setRecipeName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,13 +41,6 @@ export default function CreateRecipeScreen() {
   const [scanLoading, setScanLoading] = useState(false);
   
   const addRecipe = useProteinStore((state) => state.addRecipe);
-
-  // Handle barcode from scan screen
-  useEffect(() => {
-    if (params.scannedBarcode) {
-      handleBarcodeScanned(params.scannedBarcode as string);
-    }
-  }, [params.scannedBarcode]);
 
   const calculatedProteinForIngredient = useMemo(() => {
     if (!gramsForIngredient || !selectedProduct?.nutriments?.proteins_100g) {
