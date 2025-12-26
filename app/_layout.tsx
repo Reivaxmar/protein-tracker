@@ -52,20 +52,11 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
-        name="scan"
+        name="quick-meal"
         options={{
-          title: 'Scan',
+          title: 'Quick Meal',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="barcode" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="add-meal"
-        options={{
-          title: 'Add Meal',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle" size={size} color={color} />
+            <Ionicons name="fast-food" size={size} color={color} />
           ),
         }}
       />
