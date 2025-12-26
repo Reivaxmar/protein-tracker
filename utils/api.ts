@@ -48,3 +48,40 @@ export async function fetchProductByBarcode(
     return null;
   }
 }
+
+/**
+ * Search for products by name in OpenFoodFacts database
+ * @param searchTerm The search term
+ * @param page Page number (default: 1)
+ * @param pageSize Number of results per page (default: 20)
+ * @returns Array of products matching the search term
+ */
+export async function searchProducts(
+  searchTerm: string,
+  page: number = 1,
+  pageSize: number = 20
+): Promise<OpenFoodFactsProduct[]> {
+  try {
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(
+      searchTerm
+    )}&page=${page}&page_size=${pageSize}&json=true`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('Failed to search products:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    
+    if (data.products && Array.isArray(data.products)) {
+      return data.products;
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error searching products from OpenFoodFacts:', error);
+    return [];
+  }
+}
