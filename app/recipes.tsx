@@ -33,9 +33,30 @@ export default function RecipesScreen() {
   };
 
   const handleLogRecipe = (recipe: Recipe) => {
-    Alert.prompt(
+    Alert.alert(
       'Log Recipe',
-      `How many servings of "${recipe.name}" did you eat?`,
+      `How would you like to log "${recipe.name}"?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'By Servings',
+          onPress: () => promptForServings(recipe),
+        },
+        {
+          text: 'By Weight (g)',
+          onPress: () => promptForGrams(recipe),
+        },
+      ]
+    );
+  };
+
+  const promptForServings = (recipe: Recipe) => {
+    Alert.prompt(
+      'Log by Servings',
+      `How many servings of "${recipe.name}"?`,
       [
         {
           text: 'Cancel',
@@ -49,7 +70,7 @@ export default function RecipesScreen() {
               Alert.alert('Error', 'Please enter a valid number of servings');
               return;
             }
-            addMealFromRecipe(recipe.id, servingCount);
+            addMealFromRecipe(recipe.id, servingCount, false);
             Alert.alert(
               'Success',
               `Added ${servingCount} serving${servingCount > 1 ? 's' : ''} of ${recipe.name} (${(recipe.totalProtein * servingCount).toFixed(1)}g protein)`,
@@ -68,6 +89,47 @@ export default function RecipesScreen() {
       ],
       'plain-text',
       '1'
+    );
+  };
+
+  const promptForGrams = (recipe: Recipe) => {
+    Alert.prompt(
+      'Log by Weight',
+      `How many grams of "${recipe.name}"?\n\n(Total recipe: ${recipe.totalGrams}g)`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Log',
+          onPress: (grams?: string) => {
+            const gramsAmount = parseFloat(grams || '0');
+            if (isNaN(gramsAmount) || gramsAmount <= 0) {
+              Alert.alert('Error', 'Please enter a valid weight in grams');
+              return;
+            }
+            addMealFromRecipe(recipe.id, gramsAmount, true);
+            const proteinPer100g = recipe.totalGrams > 0 ? (recipe.totalProtein / recipe.totalGrams) * 100 : 0;
+            const proteinAmount = (proteinPer100g * gramsAmount) / 100;
+            Alert.alert(
+              'Success',
+              `Added ${gramsAmount}g of ${recipe.name} (${proteinAmount.toFixed(1)}g protein)`,
+              [
+                {
+                  text: 'View Home',
+                  onPress: () => router.push('/'),
+                },
+                {
+                  text: 'OK',
+                },
+              ]
+            );
+          },
+        },
+      ],
+      'plain-text',
+      recipe.totalGrams.toString()
     );
   };
 
