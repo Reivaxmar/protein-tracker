@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, TextInput, Button } from 'react-native';
 import { useState } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { Recipe } from '../types';
@@ -10,6 +10,9 @@ export default function RecipesScreen() {
   const addMealFromRecipe = useProteinStore((state) => state.addMealFromRecipe);
   const router = useRouter();
   const [expandedRecipe, setExpandedRecipe] = useState<string | null>(null);
+  const [promptVisible, setPromptVisible] = useState(false);
+  const [promptValue, setPromptValue] = useState('1');
+  const [promptRecipe, setPromptRecipe] = useState<Recipe | null>(null);
 
   const handleDeleteRecipe = (recipeId: string, recipeName: string) => {
     Alert.alert(
@@ -33,41 +36,54 @@ export default function RecipesScreen() {
   };
 
   const handleLogRecipe = (recipe: Recipe) => {
-    Alert.prompt(
-      'Log Recipe',
-      `How many servings of "${recipe.name}" did you eat?`,
+    if (typeof (Alert as any).prompt === 'function') {
+      Alert.prompt(
+        'Log Recipe',
+        `How many servings of "${recipe.name}" did you eat?`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Log',
+            onPress: (servings?: string) => handleSubmitPrompt(servings, recipe),
+          },
+        ],
+        'plain-text',
+        '1'
+      );
+    } else {
+      setPromptRecipe(recipe);
+      setPromptValue('1');
+      setPromptVisible(true);
+    }
+  };
+
+  const handleSubmitPrompt = (servingsInput?: string | null, recipeParam?: Recipe | null) => {
+    const recipeToUse = recipeParam || promptRecipe;
+    const servingsStr = typeof servingsInput === 'string' ? servingsInput : promptValue;
+    if (!recipeToUse) return;
+    const servingCount = parseFloat(servingsStr || '1');
+    if (isNaN(servingCount) || servingCount <= 0) {
+      Alert.alert('Error', 'Please enter a valid number of servings');
+      return;
+    }
+    addMealFromRecipe(recipeToUse.id, servingCount);
+    setPromptVisible(false);
+    setPromptRecipe(null);
+    Alert.alert(
+      'Success',
+      `Added ${servingCount} serving${servingCount > 1 ? 's' : ''} of ${recipeToUse.name} (${(recipeToUse.totalProtein * servingCount).toFixed(1)}g protein)`,
       [
         {
-          text: 'Cancel',
-          style: 'cancel',
+          text: 'View Home',
+          onPress: () => router.push('/'),
         },
         {
-          text: 'Log',
-          onPress: (servings?: string) => {
-            const servingCount = parseFloat(servings || '1');
-            if (isNaN(servingCount) || servingCount <= 0) {
-              Alert.alert('Error', 'Please enter a valid number of servings');
-              return;
-            }
-            addMealFromRecipe(recipe.id, servingCount);
-            Alert.alert(
-              'Success',
-              `Added ${servingCount} serving${servingCount > 1 ? 's' : ''} of ${recipe.name} (${(recipe.totalProtein * servingCount).toFixed(1)}g protein)`,
-              [
-                {
-                  text: 'View Home',
-                  onPress: () => router.push('/'),
-                },
-                {
-                  text: 'OK',
-                },
-              ]
-            );
-          },
+          text: 'OK',
         },
-      ],
-      'plain-text',
-      '1'
+      ]
     );
   };
 
@@ -99,6 +115,33 @@ export default function RecipesScreen() {
 
   return (
     <ScrollView style={styles.container}>
+      <Modal visible={promptVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Log Recipe</Text>
+            <Text style={styles.modalText}>How many servings of "{promptRecipe?.name}" did you eat?</Text>
+            <TextInput
+              value={promptValue}
+              onChangeText={setPromptValue}
+              keyboardType="numeric"
+              style={styles.modalInput}
+            />
+            <View style={styles.modalButtons}>
+              <Button
+                title="Cancel"
+                onPress={() => {
+                  setPromptVisible(false);
+                  setPromptRecipe(null);
+                }}
+              />
+              <Button
+                title="Log"
+                onPress={() => handleSubmitPrompt(promptValue, promptRecipe || undefined)}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>My Recipes</Text>
@@ -388,5 +431,44 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#78350f',
     lineHeight: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  modalText: {
+    fontSize: 14,
+    color: '#374151',
+    marginBottom: 12,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });
