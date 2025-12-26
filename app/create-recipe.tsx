@@ -1,7 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, FlatList, Modal } from 'react-native';
 import { useState, useMemo } from 'react';
 import { useProteinStore } from '../store/proteinStore';
-import { searchProducts, OpenFoodFactsProduct, fetchProductByBarcode } from '../utils/api';
+import { searchProducts, OpenFoodFactsProduct, fetchProductByBarcode, ProductSearchFilters } from '../utils/api';
 import { RecipeIngredient } from '../types';
 import { useRouter } from 'expo-router';
 import { generateUniqueId } from '../utils/helpers';
@@ -116,7 +116,7 @@ export default function CreateRecipeScreen() {
 
     setSearching(true);
     try {
-      const filters: any = {};
+      const filters: ProductSearchFilters = {};
       
       if (selectedCategory) {
         filters.category = selectedCategory;
