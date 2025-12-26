@@ -54,9 +54,10 @@ protein-tracker/
 - Displays current date
 - Shows three metrics in cards:
   - Protein consumed today
-  - Remaining protein allowance  
-  - Daily target protein
-- Progress bar with percentage
+  - Remaining allowance below limit (or amount over limit)
+  - Daily protein limit
+- Progress bar with percentage of limit
+- Color-coded warnings (orange when ≥80%, red when over limit)
 - List of all meals added today with details
 - Clean, card-based UI design
 
@@ -81,19 +82,19 @@ protein-tracker/
 - Helpful messaging when camera unavailable
 
 ### 4. Settings Screen
-- Input to set daily protein target
-- Recommended protein intake guidelines
+- Input to set daily protein limit
+- Guidelines for protein intake management
 - About section with app information
 - Features list
 - Save confirmation
 
 ### 5. State Management
 **Zustand Store** with:
-- `targetProtein`: Daily protein goal (default: 150g)
+- `targetProtein`: Daily protein limit (default: 150g)
 - `meals`: Array of all meals
 - `dailyProteinData`: Object keyed by date
 - `addMeal()`: Add new meal and update daily totals
-- `setTargetProtein()`: Update protein goal
+- `setTargetProtein()`: Update protein limit
 - `getTodayData()`: Get current day's data
 - `loadData()`: Load from AsyncStorage
 - `saveData()`: Save to AsyncStorage
@@ -101,7 +102,7 @@ protein-tracker/
 **Automatic Persistence**:
 - Data loads on app startup
 - Data saves after every meal addition
-- Data saves after target protein changes
+- Data saves after protein limit changes
 - All data persists across app restarts
 
 ### 6. TypeScript Types
