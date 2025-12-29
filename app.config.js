@@ -26,7 +26,9 @@ export default {
       permissions: ["CAMERA"]
     },
     web: {
-      favicon: "./assets/favicon.png"
+      favicon: "./assets/favicon.png",
+      bundler: "metro",
+      output: "static"
     },
     plugins: [
       "expo-router",

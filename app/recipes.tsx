@@ -13,6 +13,7 @@ export default function RecipesScreen() {
   const [promptVisible, setPromptVisible] = useState(false);
   const [promptValue, setPromptValue] = useState('1');
   const [promptRecipe, setPromptRecipe] = useState<Recipe | null>(null);
+  const [promptMode, setPromptMode] = useState<'servings' | 'grams'>('servings');
 
   const handleDeleteRecipe = (recipeId: string, recipeName: string) => {
     Alert.alert(
@@ -36,83 +37,69 @@ export default function RecipesScreen() {
   };
 
   const handleLogRecipe = (recipe: Recipe) => {
-    Alert.prompt(
-      'Log Recipe',
-      `How many servings of "${recipe.name}" did you eat?`,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Log',
-          onPress: (servings?: string) => {
-            const servingCount = parseFloat(servings || '1');
-            if (isNaN(servingCount) || servingCount <= 0) {
-              Alert.alert('Error', 'Please enter a valid number of servings');
-              return;
-            }
-            addMealFromRecipe(recipe.id, servingCount);
-            Alert.alert(
-              'Success',
-              `Added ${servingCount} serving${servingCount > 1 ? 's' : ''} of ${recipe.name} (${(recipe.totalProtein * servingCount).toFixed(1)}g protein)`,
-              [
-                {
-                  text: 'View Home',
-                  onPress: () => router.push('/'),
-                },
-                {
-                  text: 'OK',
-                },
-              ]
-            );
+    setPromptRecipe(recipe);
+    setPromptValue('1');
+    setPromptMode('servings');
+    setPromptVisible(true);
+  };
+
+  const handleSubmitPrompt = (value: string, recipe?: Recipe) => {
+    if (!recipe) return;
+    
+    if (promptMode === 'servings') {
+      const servingCount = parseFloat(value || '1');
+      if (isNaN(servingCount) || servingCount <= 0) {
+        Alert.alert('Error', 'Please enter a valid number of servings');
+        return;
+      }
+      
+      setPromptVisible(false);
+      addMealFromRecipe(recipe.id, servingCount);
+      Alert.alert(
+        'Success',
+        `Added ${servingCount} serving${servingCount > 1 ? 's' : ''} of ${recipe.name} (${(recipe.totalProtein * servingCount).toFixed(1)}g protein)`,
+        [
+          {
+            text: 'View Home',
+            onPress: () => router.push('/'),
           },
-        },
-      ],
-      'plain-text',
-      '1'
-    );
+          {
+            text: 'OK',
+          },
+        ]
+      );
+    } else {
+      const gramsAmount = parseFloat(value || '0');
+      if (isNaN(gramsAmount) || gramsAmount <= 0) {
+        Alert.alert('Error', 'Please enter a valid weight in grams');
+        return;
+      }
+      
+      setPromptVisible(false);
+      addMealFromRecipe(recipe.id, gramsAmount, true);
+      const proteinPer100g = recipe.totalGrams > 0 ? (recipe.totalProtein / recipe.totalGrams) * 100 : 0;
+      const proteinAmount = (proteinPer100g * gramsAmount) / 100;
+      Alert.alert(
+        'Success',
+        `Added ${gramsAmount}g of ${recipe.name} (${proteinAmount.toFixed(1)}g protein)`,
+        [
+          {
+            text: 'View Home',
+            onPress: () => router.push('/'),
+          },
+          {
+            text: 'OK',
+          },
+        ]
+      );
+    }
   };
 
   const promptForGrams = (recipe: Recipe) => {
-    Alert.prompt(
-      'Log by Weight',
-      `How many grams of "${recipe.name}"?\n\n(Total recipe: ${recipe.totalGrams}g)`,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Log',
-          onPress: (grams?: string) => {
-            const gramsAmount = parseFloat(grams || '0');
-            if (isNaN(gramsAmount) || gramsAmount <= 0) {
-              Alert.alert('Error', 'Please enter a valid weight in grams');
-              return;
-            }
-            addMealFromRecipe(recipe.id, gramsAmount, true);
-            const proteinPer100g = recipe.totalGrams > 0 ? (recipe.totalProtein / recipe.totalGrams) * 100 : 0;
-            const proteinAmount = (proteinPer100g * gramsAmount) / 100;
-            Alert.alert(
-              'Success',
-              `Added ${gramsAmount}g of ${recipe.name} (${proteinAmount.toFixed(1)}g protein)`,
-              [
-                {
-                  text: 'View Home',
-                  onPress: () => router.push('/'),
-                },
-                {
-                  text: 'OK',
-                },
-              ]
-            );
-          },
-        },
-      ],
-      'plain-text',
-      recipe.totalGrams.toString()
-    );
+    setPromptRecipe(recipe);
+    setPromptValue(recipe.totalGrams.toString());
+    setPromptMode('grams');
+    setPromptVisible(true);
   };
 
   const toggleRecipeExpansion = (recipeId: string) => {
@@ -146,13 +133,21 @@ export default function RecipesScreen() {
       <Modal visible={promptVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Log Recipe</Text>
-            <Text style={styles.modalText}>How many servings of "{promptRecipe?.name}" did you eat?</Text>
+            <Text style={styles.modalTitle}>
+              {promptMode === 'servings' ? 'Log Recipe' : 'Log by Weight'}
+            </Text>
+            <Text style={styles.modalText}>
+              {promptMode === 'servings' 
+                ? `How many servings of "${promptRecipe?.name}" did you eat?`
+                : `How many grams of "${promptRecipe?.name}"?\n\n(Total recipe: ${promptRecipe?.totalGrams}g)`
+              }
+            </Text>
             <TextInput
               value={promptValue}
               onChangeText={setPromptValue}
               keyboardType="numeric"
               style={styles.modalInput}
+              autoFocus
             />
             <View style={styles.modalButtons}>
               <Button
@@ -164,7 +159,7 @@ export default function RecipesScreen() {
               />
               <Button
                 title="Log"
-                onPress={() => handleSubmitPrompt(promptValue, promptRecipe || undefined)}
+                onPress={() => handleSubmitPrompt(promptValue, promptRecipe ?? undefined)}
               />
             </View>
           </View>
