@@ -2,6 +2,7 @@
   "name": "protein-tracker",
   "version": "1.0.0",
   "main": "expo-router/entry",
+  "homepage": "https://username.github.io/repo-name",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
