@@ -159,7 +159,7 @@ export default function RecipesScreen() {
               />
               <Button
                 title="Log"
-                onPress={() => handleSubmitPrompt(promptValue, promptRecipe || undefined)}
+                onPress={() => handleSubmitPrompt(promptValue, promptRecipe ?? undefined)}
               />
             </View>
           </View>
