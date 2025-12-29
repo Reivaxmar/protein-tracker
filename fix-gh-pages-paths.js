@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 const fs = require('fs');
 const path = require('path');
 
@@ -17,9 +18,9 @@ html = html.replace(/src="\/_expo\//g, 'src="./_expo/');
 // Fix link tags: href="/favicon.ico" -> href="./favicon.ico"
 html = html.replace(/href="\/favicon\.ico"/g, 'href="./favicon.ico"');
 
-// Fix any other absolute paths that start with /
-html = html.replace(/href="\//g, 'href="./');
-html = html.replace(/src="\//g, 'src="./');
+// Fix any other absolute paths that start with / (but not protocol-relative URLs //)
+html = html.replace(/href="\/(?!\/)/g, 'href="./');
+html = html.replace(/src="\/(?!\/)/g, 'src="./');
 
 // Write the fixed HTML back
 fs.writeFileSync(indexPath, html, 'utf8');
@@ -56,7 +57,9 @@ const fixHtmlFilesInDir = (dir) => {
 try {
   fixHtmlFilesInDir(distDir);
 } catch (err) {
-  // It's okay if this fails, just continue
+  if (err.code !== 'ENOENT') {
+    console.error('Warning: Error while processing subdirectories:', err.message);
+  }
 }
 
 console.log('All done!');
