@@ -1,35 +1,64 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal } from 'react-native';
-import { useState, useMemo, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, PanResponder, Animated } from 'react-native';
+import React, { useState, useMemo, useRef } from 'react';
 import { useProteinStore } from '../store/proteinStore';
-import { generateUniqueId } from '../utils/helpers';
+import { generateUniqueId, getTodayDateString } from '../utils/helpers';
 
 interface CalculatorIngredient {
   id: string;
   name: string;
   proteinPer100g: number;
-  ratio: number; // Percentage ratio (0-100)
 }
 
 export default function CalculateAmountsScreen() {
+  const today = getTodayDateString();
+  const storedTodayData = useProteinStore((state) => state.dailyProteinData[today]);
   const targetProtein = useProteinStore((state) => state.targetProtein);
-  const todayData = useProteinStore((state) => state.getTodayData());
+  
+  // Create a stable fallback object only when necessary
+  const todayData = useMemo(() => {
+    if (storedTodayData) return storedTodayData;
+    return {
+      date: today,
+      totalProtein: 0,
+      targetProtein,
+      meals: [] as any[],
+    };
+  }, [storedTodayData, today, targetProtein]);
   
   const [ingredients, setIngredients] = useState<CalculatorIngredient[]>([]);
-  const [targetProteinAmount, setTargetProteinAmount] = useState('');
+  const [sliderPoints, setSliderPoints] = useState<number[]>([]); // Positions from 0 to 100
+  const [targetProteinAmount, setTargetProteinAmount] = useState('0');
   const [showAddIngredient, setShowAddIngredient] = useState(false);
   const [newIngredientName, setNewIngredientName] = useState('');
   const [newIngredientProtein, setNewIngredientProtein] = useState('');
-  const [newIngredientRatio, setNewIngredientRatio] = useState('');
-
-  // Calculate remaining protein on mount
-  useEffect(() => {
-    const remaining = targetProtein - todayData.totalProtein;
+  
+  // Set initial protein amount once on mount
+  React.useEffect(() => {
+    const totalProteinToday = todayData.totalProtein;
+    const remaining = targetProtein - totalProteinToday;
     setTargetProteinAmount(remaining > 0 ? remaining.toFixed(1) : '0');
-  }, []);
+  }, []); // Empty deps - only run once
+  
+  const totalProteinToday = todayData.totalProtein;
+
+  // Calculate ratios from slider points
+  const ingredientRatios = useMemo(() => {
+    if (ingredients.length === 0) return [];
+    if (ingredients.length === 1) return [100];
+    
+    const ratios: number[] = [];
+    const points = [0, ...sliderPoints, 100];
+    
+    for (let i = 0; i < points.length - 1; i++) {
+      ratios.push(points[i + 1] - points[i]);
+    }
+    
+    return ratios;
+  }, [ingredients.length, sliderPoints]);
 
   const totalRatio = useMemo(() => {
-    return ingredients.reduce((sum, ing) => sum + ing.ratio, 0);
-  }, [ingredients]);
+    return ingredientRatios.reduce((sum, ratio) => sum + ratio, 0);
+  }, [ingredientRatios]);
 
   const calculatedAmounts = useMemo(() => {
     if (!targetProteinAmount || ingredients.length === 0 || totalRatio === 0) {
@@ -42,20 +71,22 @@ export default function CalculateAmountsScreen() {
     }
 
     // For each ingredient, calculate how many grams are needed
-    return ingredients.map((ingredient) => {
+    return ingredients.map((ingredient, index) => {
+      const ratio = ingredientRatios[index] || 0;
       // Calculate the protein that should come from this ingredient based on its ratio
-      const proteinFromThisIngredient = (ingredient.ratio / totalRatio) * targetProteinValue;
+      const proteinFromThisIngredient = (ratio / totalRatio) * targetProteinValue;
       
       // Calculate grams needed: if proteinPer100g = X, then grams = (proteinFromThisIngredient / X) * 100
       const gramsNeeded = (proteinFromThisIngredient / ingredient.proteinPer100g) * 100;
       
       return {
         ...ingredient,
+        ratio,
         proteinAmount: proteinFromThisIngredient,
         gramsNeeded: gramsNeeded,
       };
     });
-  }, [ingredients, targetProteinAmount, totalRatio]);
+  }, [ingredients, ingredientRatios, targetProteinAmount, totalRatio]);
 
   const handleAddIngredient = () => {
     if (!newIngredientName.trim()) {
@@ -69,42 +100,74 @@ export default function CalculateAmountsScreen() {
       return;
     }
 
-    const ratioValue = parseFloat(newIngredientRatio);
-    if (isNaN(ratioValue) || ratioValue <= 0 || ratioValue > 100) {
-      Alert.alert('Error', 'Please enter a valid ratio between 1 and 100');
-      return;
-    }
-
     const newIngredient: CalculatorIngredient = {
       id: generateUniqueId(),
       name: newIngredientName.trim(),
       proteinPer100g: proteinValue,
-      ratio: ratioValue,
     };
 
-    setIngredients([...ingredients, newIngredient]);
+    const newIngredients = [...ingredients, newIngredient];
+    setIngredients(newIngredients);
+    
+    // Initialize slider points evenly distributed
+    if (newIngredients.length > 1) {
+      const numPoints = newIngredients.length - 1;
+      const newPoints: number[] = [];
+      for (let i = 1; i <= numPoints; i++) {
+        newPoints.push((i / (numPoints + 1)) * 100);
+      }
+      setSliderPoints(newPoints);
+    }
+    
     setNewIngredientName('');
     setNewIngredientProtein('');
-    setNewIngredientRatio('');
     setShowAddIngredient(false);
     Alert.alert('Success', 'Ingredient added');
   };
 
   const handleRemoveIngredient = (id: string) => {
-    setIngredients(ingredients.filter((ing) => ing.id !== id));
+    const newIngredients = ingredients.filter((ing) => ing.id !== id);
+    setIngredients(newIngredients);
+    
+    // Recalculate slider points
+    if (newIngredients.length > 1) {
+      const numPoints = newIngredients.length - 1;
+      const newPoints: number[] = [];
+      for (let i = 1; i <= numPoints; i++) {
+        newPoints.push((i / (numPoints + 1)) * 100);
+      }
+      setSliderPoints(newPoints);
+    } else {
+      setSliderPoints([]);
+    }
   };
 
-  const handleUpdateRatio = (id: string, newRatio: string) => {
-    const ratioValue = parseFloat(newRatio);
-    if (isNaN(ratioValue) || ratioValue < 0) {
-      return;
+  const handleSliderPointMove = (pointIndex: number, newPosition: number) => {
+    const newPoints = [...sliderPoints];
+    
+    // Clamp position between 0 and 100
+    let clampedPosition = Math.max(0, Math.min(100, newPosition));
+    
+    // Ensure point stays after previous point
+    if (pointIndex > 0 && clampedPosition <= sliderPoints[pointIndex - 1]) {
+      clampedPosition = sliderPoints[pointIndex - 1] + 0.1;
     }
-
-    setIngredients(
-      ingredients.map((ing) =>
-        ing.id === id ? { ...ing, ratio: ratioValue } : ing
-      )
-    );
+    
+    // Ensure point stays before next point
+    if (pointIndex < sliderPoints.length - 1 && clampedPosition >= sliderPoints[pointIndex + 1]) {
+      clampedPosition = sliderPoints[pointIndex + 1] - 0.1;
+    }
+    
+    // Also clamp against boundaries (0 and 100)
+    if (pointIndex === 0) {
+      clampedPosition = Math.max(0.1, clampedPosition);
+    }
+    if (pointIndex === sliderPoints.length - 1) {
+      clampedPosition = Math.min(99.9, clampedPosition);
+    }
+    
+    newPoints[pointIndex] = clampedPosition;
+    setSliderPoints(newPoints);
   };
 
   const totalProteinCheck = useMemo(() => {
@@ -133,7 +196,7 @@ export default function CalculateAmountsScreen() {
           <View style={styles.infoBox}>
             <Text style={styles.infoLabel}>Your Status:</Text>
             <Text style={styles.infoText}>
-              Daily Limit: {targetProtein}g • Consumed: {todayData.totalProtein.toFixed(1)}g • Remaining: {Math.max(0, targetProtein - todayData.totalProtein).toFixed(1)}g
+              Daily Limit: {targetProtein}g • Consumed: {totalProteinToday.toFixed(1)}g • Remaining: {Math.max(0, targetProtein - totalProteinToday).toFixed(1)}g
             </Text>
           </View>
 
@@ -161,18 +224,24 @@ export default function CalculateAmountsScreen() {
               <Text style={styles.emptyIcon}>🥗</Text>
               <Text style={styles.emptyText}>No ingredients added yet</Text>
               <Text style={styles.emptyHint}>
-                Add ingredients with their protein content and desired ratio
+                Add ingredients and use the slider to set ratios
               </Text>
             </View>
           ) : (
             <View>
-              {ingredients.map((ingredient) => (
+              {/* List ingredients */}
+              {ingredients.map((ingredient, index) => (
                 <View key={ingredient.id} style={styles.ingredientItem}>
                   <View style={styles.ingredientHeader}>
                     <View style={styles.ingredientInfo}>
-                      <Text style={styles.ingredientName}>{ingredient.name}</Text>
+                      <Text style={styles.ingredientName}>
+                        {index + 1}. {ingredient.name}
+                      </Text>
                       <Text style={styles.ingredientProtein}>
                         {ingredient.proteinPer100g}g protein/100g
+                      </Text>
+                      <Text style={styles.ingredientRatioDisplay}>
+                        Ratio: {ingredientRatios[index]?.toFixed(1) || 0}%
                       </Text>
                     </View>
                     <TouchableOpacity
@@ -182,34 +251,66 @@ export default function CalculateAmountsScreen() {
                       <Text style={styles.removeButtonText}>✕</Text>
                     </TouchableOpacity>
                   </View>
-                  
-                  <View style={styles.ratioInput}>
-                    <Text style={styles.ratioLabel}>Ratio:</Text>
-                    <TextInput
-                      style={styles.ratioTextInput}
-                      value={ingredient.ratio.toString()}
-                      onChangeText={(text) => handleUpdateRatio(ingredient.id, text)}
-                      keyboardType="decimal-pad"
-                      placeholderTextColor="#9ca3af"
-                    />
-                    <Text style={styles.ratioUnit}>%</Text>
-                  </View>
                 </View>
               ))}
 
-              <View style={styles.ratioSummary}>
-                <Text style={styles.ratioSummaryLabel}>Total Ratio:</Text>
-                <Text style={[
-                  styles.ratioSummaryValue,
-                  totalRatio !== 100 && styles.ratioSummaryWarning
-                ]}>
-                  {totalRatio.toFixed(1)}%
-                </Text>
-              </View>
-              {totalRatio !== 100 && (
-                <Text style={styles.ratioWarningText}>
-                  💡 Tip: Ratios don't need to equal 100%. They represent relative proportions.
-                </Text>
+              {/* Visual slider for ratios (only if 2+ ingredients) */}
+              {ingredients.length > 1 && (
+                <View style={styles.sliderContainer}>
+                  <Text style={styles.sliderTitle}>Adjust Ratios</Text>
+                  <Text style={styles.sliderHint}>
+                    Drag the points to adjust the proportion of each ingredient
+                  </Text>
+                  
+                  <View style={styles.sliderWrapper}>
+                    {/* Slider line */}
+                    <View style={styles.sliderLine} />
+                    
+                    {/* Ingredient sections */}
+                    {ingredients.map((ingredient, index) => {
+                      const startPos = index === 0 ? 0 : sliderPoints[index - 1];
+                      const endPos = index === ingredients.length - 1 ? 100 : sliderPoints[index];
+                      const ratio = ingredientRatios[index] || 0;
+                      
+                      return (
+                        <View
+                          key={`section-${ingredient.id}`}
+                          style={[
+                            styles.sliderSection,
+                            {
+                              left: `${startPos}%`,
+                              width: `${endPos - startPos}%`,
+                            },
+                          ]}
+                        >
+                          <Text style={styles.sliderSectionLabel} numberOfLines={1}>
+                            {ingredient.name}
+                          </Text>
+                          <Text style={styles.sliderSectionRatio}>
+                            {ratio.toFixed(0)}%
+                          </Text>
+                        </View>
+                      );
+                    })}
+                    
+                    {/* Draggable points */}
+                    {sliderPoints.map((point, index) => (
+                      <View
+                        key={`point-${index}`}
+                        style={[styles.sliderPoint, { left: `${point}%` }]}
+                        onStartShouldSetResponder={() => true}
+                        onResponderMove={(evt) => {
+                          const locationX = evt.nativeEvent.locationX;
+                          const sliderWidth = 300; // Approximate width
+                          const newPosition = (locationX / sliderWidth) * 100;
+                          handleSliderPointMove(index, point + (newPosition - point) * 0.1);
+                        }}
+                      >
+                        <View style={styles.sliderPointHandle} />
+                      </View>
+                    ))}
+                  </View>
+                </View>
               )}
             </View>
           )}
@@ -263,13 +364,11 @@ export default function CalculateAmountsScreen() {
           <Text style={styles.infoCardText}>
             1. Set your target protein amount (defaults to remaining for today){'\n'}
             2. Add ingredients with their protein content per 100g{'\n'}
-            3. Set the ratio for each ingredient (e.g., 30% cheese, 30% ham, 40% bacon){'\n'}
-            4. See calculated amounts needed of each ingredient{'\n'}
+            3. Use the visual slider to adjust the ratio of each ingredient{'\n'}
+            4. Drag the points on the slider to change proportions{'\n'}
+            5. See calculated amounts needed of each ingredient{'\n'}
             {'\n'}
-            Example: To get 50g protein with 30% cheese (25g/100g) and 70% ham (20g/100g):{'\n'}
-            • Cheese: 60g → 15g protein{'\n'}
-            • Ham: 175g → 35g protein{'\n'}
-            • Total: 235g → 50g protein
+            The slider divides ingredients into sections - drag points to adjust!
           </Text>
         </View>
       </View>
@@ -312,20 +411,8 @@ export default function CalculateAmountsScreen() {
                   keyboardType="decimal-pad"
                   placeholderTextColor="#9ca3af"
                 />
-              </View>
-
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Ratio (%)</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="e.g., 30"
-                  value={newIngredientRatio}
-                  onChangeText={setNewIngredientRatio}
-                  keyboardType="decimal-pad"
-                  placeholderTextColor="#9ca3af"
-                />
                 <Text style={styles.hint}>
-                  The proportion of this ingredient (e.g., 30 for 30%)
+                  Ratios will be set using the slider after adding
                 </Text>
               </View>
 
@@ -478,64 +565,87 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontWeight: 'bold',
   },
-  ratioInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    padding: 8,
-  },
-  ratioLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginRight: 8,
-  },
-  ratioTextInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 6,
-    padding: 8,
-    fontSize: 16,
-    color: '#1f2937',
-    backgroundColor: '#f9fafb',
-  },
-  ratioUnit: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginLeft: 8,
-  },
-  ratioSummary: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  ratioSummaryLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  ratioSummaryValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#10b981',
-  },
-  ratioSummaryWarning: {
-    color: '#f59e0b',
-  },
-  ratioWarningText: {
+  ingredientRatioDisplay: {
     fontSize: 12,
-    color: '#78350f',
-    backgroundColor: '#fef3c7',
-    padding: 8,
-    borderRadius: 6,
-    marginBottom: 8,
+    color: '#3b82f6',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  sliderContainer: {
+    marginTop: 16,
+    marginBottom: 16,
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+  },
+  sliderTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 4,
+  },
+  sliderHint: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 16,
+  },
+  sliderWrapper: {
+    height: 80,
+    position: 'relative',
+    marginVertical: 20,
+  },
+  sliderLine: {
+    position: 'absolute',
+    top: 40,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: '#d1d5db',
+    borderRadius: 2,
+  },
+  sliderSection: {
+    position: 'absolute',
+    top: 0,
+    height: 70,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  sliderSectionLabel: {
+    fontSize: 11,
+    color: '#374151',
+    fontWeight: '500',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  sliderSectionRatio: {
+    fontSize: 13,
+    color: '#3b82f6',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  sliderPoint: {
+    position: 'absolute',
+    top: 30,
+    width: 24,
+    height: 24,
+    marginLeft: -12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  sliderPointHandle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#3b82f6',
+    borderWidth: 3,
+    borderColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 5,
   },
   addButton: {
     backgroundColor: '#3b82f6',
