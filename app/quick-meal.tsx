@@ -513,6 +513,8 @@ export default function QuickMealScreen() {
           <Text style={styles.infoTitle}>💡 About Quick Meal</Text>
           <Text style={styles.infoText}>
             • Search for ingredients or scan barcodes{'\n'}
+            • Filter by category, brand, or minimum protein{'\n'}
+            • Add custom ingredients with your own values{'\n'}
             • Add multiple items to build your meal{'\n'}
             • This meal won't be saved as a recipe{'\n'}
             • Perfect for one-time meals!

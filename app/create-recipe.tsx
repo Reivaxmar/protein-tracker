@@ -506,8 +506,9 @@ export default function CreateRecipeScreen() {
           <Text style={styles.infoTitle}>💡 Tips</Text>
           <Text style={styles.infoText}>
             • Search for ingredients by name{'\n'}
-            • Use filters to narrow down results{'\n'}
+            • Use filters to narrow down results (category, brand, protein){'\n'}
             • Scan barcodes to quickly add packaged foods{'\n'}
+            • Add custom ingredients with your own protein values{'\n'}
             • Add multiple ingredients to build your recipe{'\n'}
             • Once saved, you can quickly log the recipe as a meal
           </Text>
