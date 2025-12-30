@@ -53,6 +53,7 @@ export interface ProductSearchFilters {
   category?: string;
   minProtein?: number;
   maxProtein?: number;
+  brand?: string;
 }
 
 /**
@@ -77,6 +78,12 @@ export async function searchProducts(
     // Add category filter if specified
     if (filters?.category) {
       url += `&tagtype_0=categories&tag_contains_0=contains&tag_0=${encodeURIComponent(filters.category)}`;
+    }
+    
+    // Add brand filter if specified
+    if (filters?.brand) {
+      const tagIndex = filters.category ? '1' : '0';
+      url += `&tagtype_${tagIndex}=brands&tag_contains_${tagIndex}=contains&tag_${tagIndex}=${encodeURIComponent(filters.brand)}`;
     }
     
     const response = await fetch(url);
