@@ -34,11 +34,16 @@ export default function CreateRecipeScreen() {
   const [gramsForIngredient, setGramsForIngredient] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [minProtein, setMinProtein] = useState('');
+  const [brandFilter, setBrandFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
+  const [showCustomIngredient, setShowCustomIngredient] = useState(false);
+  const [customIngredientName, setCustomIngredientName] = useState('');
+  const [customIngredientProtein, setCustomIngredientProtein] = useState('');
+  const [customIngredientGrams, setCustomIngredientGrams] = useState('');
   
   const addRecipe = useProteinStore((state) => state.addRecipe);
 
@@ -126,6 +131,10 @@ export default function CreateRecipeScreen() {
         filters.minProtein = parseFloat(minProtein);
       }
       
+      if (brandFilter && brandFilter.trim()) {
+        filters.brand = brandFilter.trim();
+      }
+      
       const results = await searchProducts(searchTerm, SEARCH_PAGE_NUMBER, SEARCH_PAGE_SIZE, filters);
       setSearchResults(results);
       if (results.length === 0) {
@@ -180,6 +189,42 @@ export default function CreateRecipeScreen() {
 
   const handleRemoveIngredient = (id: string) => {
     setIngredients(ingredients.filter((ing) => ing.id !== id));
+  };
+
+  const handleAddCustomIngredient = () => {
+    if (!customIngredientName.trim()) {
+      Alert.alert('Error', 'Please enter an ingredient name');
+      return;
+    }
+
+    if (!customIngredientProtein || parseFloat(customIngredientProtein) < 0) {
+      Alert.alert('Error', 'Please enter a valid protein amount (g/100g)');
+      return;
+    }
+
+    if (!customIngredientGrams || parseFloat(customIngredientGrams) <= 0) {
+      Alert.alert('Error', 'Please enter a valid amount in grams');
+      return;
+    }
+
+    const grams = parseFloat(customIngredientGrams);
+    const proteinPer100g = parseFloat(customIngredientProtein);
+    const totalProtein = (proteinPer100g * grams) / 100;
+
+    const newIngredient: RecipeIngredient = {
+      id: generateUniqueId(),
+      name: customIngredientName.trim(),
+      proteinPer100g,
+      gramsInRecipe: grams,
+      totalProtein,
+    };
+
+    setIngredients([...ingredients, newIngredient]);
+    setCustomIngredientName('');
+    setCustomIngredientProtein('');
+    setCustomIngredientGrams('');
+    setShowCustomIngredient(false);
+    Alert.alert('Success', 'Custom ingredient added to recipe');
   };
 
   const calculateTotalProtein = () => {
@@ -281,6 +326,13 @@ export default function CreateRecipeScreen() {
             </TouchableOpacity>
           </View>
 
+          <TouchableOpacity
+            style={styles.customIngredientButton}
+            onPress={() => setShowCustomIngredient(true)}
+          >
+            <Text style={styles.customIngredientButtonText}>➕ Add Custom Ingredient</Text>
+          </TouchableOpacity>
+
           {showFilters && (
             <View style={styles.filtersContainer}>
               <Text style={styles.filterLabel}>Category</Text>
@@ -311,6 +363,15 @@ export default function CreateRecipeScreen() {
                 value={minProtein}
                 onChangeText={setMinProtein}
                 keyboardType="decimal-pad"
+                placeholderTextColor="#9ca3af"
+              />
+              
+              <Text style={styles.filterLabel}>Brand / Manufacturer</Text>
+              <TextInput
+                style={styles.filterInput}
+                placeholder="e.g., Nestle, Danone"
+                value={brandFilter}
+                onChangeText={setBrandFilter}
                 placeholderTextColor="#9ca3af"
               />
             </View>
@@ -445,13 +506,94 @@ export default function CreateRecipeScreen() {
           <Text style={styles.infoTitle}>💡 Tips</Text>
           <Text style={styles.infoText}>
             • Search for ingredients by name{'\n'}
-            • Use filters to narrow down results{'\n'}
+            • Use filters to narrow down results (category, brand, protein){'\n'}
             • Scan barcodes to quickly add packaged foods{'\n'}
+            • Add custom ingredients with your own protein values{'\n'}
             • Add multiple ingredients to build your recipe{'\n'}
             • Once saved, you can quickly log the recipe as a meal
           </Text>
         </View>
       </View>
+
+      {/* Custom Ingredient Modal */}
+      <Modal
+        visible={showCustomIngredient}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowCustomIngredient(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Add Custom Ingredient</Text>
+              <TouchableOpacity onPress={() => setShowCustomIngredient(false)}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody}>
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Ingredient Name</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., Grilled Chicken"
+                  value={customIngredientName}
+                  onChangeText={setCustomIngredientName}
+                  placeholderTextColor="#9ca3af"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Protein per 100g</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., 25.5"
+                  value={customIngredientProtein}
+                  onChangeText={setCustomIngredientProtein}
+                  keyboardType="decimal-pad"
+                  placeholderTextColor="#9ca3af"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Amount (grams)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., 150"
+                  value={customIngredientGrams}
+                  onChangeText={setCustomIngredientGrams}
+                  keyboardType="decimal-pad"
+                  placeholderTextColor="#9ca3af"
+                />
+              </View>
+
+              {customIngredientProtein && customIngredientGrams && 
+               parseFloat(customIngredientProtein) >= 0 && parseFloat(customIngredientGrams) > 0 && (
+                <View style={styles.calculatedProtein}>
+                  <Text style={styles.calculatedLabel}>Total Protein:</Text>
+                  <Text style={styles.calculatedValue}>
+                    {((parseFloat(customIngredientProtein) * parseFloat(customIngredientGrams)) / 100).toFixed(1)}g
+                  </Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={styles.addIngredientButton}
+                onPress={handleAddCustomIngredient}
+              >
+                <Text style={styles.addIngredientButtonText}>Add to Recipe</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setShowCustomIngredient(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {/* Barcode Scanner Modal */}
       <Modal
@@ -629,6 +771,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scanButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  customIngredientButton: {
+    backgroundColor: '#8b5cf6',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  customIngredientButtonText: {
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
@@ -997,5 +1152,43 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    width: '90%',
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  modalCloseText: {
+    fontSize: 24,
+    color: '#6b7280',
+    fontWeight: 'bold',
+  },
+  modalBody: {
+    padding: 20,
   },
 });
