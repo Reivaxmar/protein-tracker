@@ -10,36 +10,15 @@ interface CalculatorIngredient {
 }
 
 export default function CalculateAmountsScreen() {
-  const today = getTodayDateString();
-  const storedTodayData = useProteinStore((state) => state.dailyProteinData[today]);
-  const targetProtein = useProteinStore((state) => state.targetProtein);
-  
-  // Create a stable fallback object only when necessary
-  const todayData = useMemo(() => {
-    if (storedTodayData) return storedTodayData;
-    return {
-      date: today,
-      totalProtein: 0,
-      targetProtein,
-      meals: [] as any[],
-    };
-  }, [storedTodayData, today, targetProtein]);
-  
   const [ingredients, setIngredients] = useState<CalculatorIngredient[]>([]);
   const [sliderPoints, setSliderPoints] = useState<number[]>([]); // Positions from 0 to 100
-  const [targetProteinAmount, setTargetProteinAmount] = useState('0');
+  const [targetProteinAmount, setTargetProteinAmount] = useState('50'); // Default to 50g
   const [showAddIngredient, setShowAddIngredient] = useState(false);
   const [newIngredientName, setNewIngredientName] = useState('');
   const [newIngredientProtein, setNewIngredientProtein] = useState('');
   
-  // Set initial protein amount once on mount
-  React.useEffect(() => {
-    const totalProteinToday = todayData.totalProtein;
-    const remaining = targetProtein - totalProteinToday;
-    setTargetProteinAmount(remaining > 0 ? remaining.toFixed(1) : '0');
-  }, []); // Empty deps - only run once
-  
-  const totalProteinToday = todayData.totalProtein;
+  const totalProteinToday = 0; // Hardcoded for now
+  const targetProtein = 150; // Hardcoded for now
 
   // Calculate ratios from slider points
   const ingredientRatios = useMemo(() => {
