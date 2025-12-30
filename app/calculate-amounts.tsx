@@ -49,19 +49,39 @@ export default function CalculateAmountsScreen() {
       return [];
     }
 
+    // The ratios represent the percentage of GRAMS for each ingredient
+    // We need to find the total grams such that the protein adds up to targetProteinValue
+    // Let's denote:
+    // - ratio[i] = percentage of total grams for ingredient i
+    // - totalGrams = the total amount of grams we need to find
+    // - grams[i] = (ratio[i] / 100) * totalGrams
+    // - protein[i] = grams[i] * proteinPer100g[i] / 100
+    // - Sum of protein[i] = targetProteinValue
+    // 
+    // Therefore: Sum((ratio[i] / 100) * totalGrams * proteinPer100g[i] / 100) = targetProteinValue
+    // Solving for totalGrams: totalGrams = targetProteinValue * 10000 / Sum(ratio[i] * proteinPer100g[i])
+    
+    const sumRatioTimesProtein = ingredients.reduce((sum, ingredient, index) => {
+      const ratio = ingredientRatios[index] || 0;
+      return sum + (ratio * ingredient.proteinPer100g);
+    }, 0);
+    
+    if (sumRatioTimesProtein === 0) {
+      return [];
+    }
+    
+    const totalGrams = (targetProteinValue * 10000) / sumRatioTimesProtein;
+    
     // For each ingredient, calculate how many grams are needed
     return ingredients.map((ingredient, index) => {
       const ratio = ingredientRatios[index] || 0;
-      // Calculate the protein that should come from this ingredient based on its ratio
-      const proteinFromThisIngredient = (ratio / totalRatio) * targetProteinValue;
-      
-      // Calculate grams needed: if proteinPer100g = X, then grams = (proteinFromThisIngredient / X) * 100
-      const gramsNeeded = (proteinFromThisIngredient / ingredient.proteinPer100g) * 100;
+      const gramsNeeded = (ratio / 100) * totalGrams;
+      const proteinAmount = (gramsNeeded * ingredient.proteinPer100g) / 100;
       
       return {
         ...ingredient,
         ratio,
-        proteinAmount: proteinFromThisIngredient,
+        proteinAmount: proteinAmount,
         gramsNeeded: gramsNeeded,
       };
     });
@@ -220,7 +240,7 @@ export default function CalculateAmountsScreen() {
                         {ingredient.proteinPer100g}g protein/100g
                       </Text>
                       <Text style={styles.ingredientRatioDisplay}>
-                        Ratio: {ingredientRatios[index]?.toFixed(1) || 0}%
+                        Grams Ratio: {ingredientRatios[index]?.toFixed(1) || 0}%
                       </Text>
                     </View>
                     <TouchableOpacity
@@ -236,9 +256,9 @@ export default function CalculateAmountsScreen() {
               {/* Visual slider for ratios (only if 2+ ingredients) */}
               {ingredients.length > 1 && (
                 <View style={styles.sliderContainer}>
-                  <Text style={styles.sliderTitle}>Adjust Ratios</Text>
+                  <Text style={styles.sliderTitle}>Adjust Grams Ratios</Text>
                   <Text style={styles.sliderHint}>
-                    Drag the points to adjust the proportion of each ingredient
+                    Drag the points to adjust the proportion of grams for each ingredient
                   </Text>
                   
                   <View style={styles.sliderWrapper}>
@@ -343,11 +363,11 @@ export default function CalculateAmountsScreen() {
           <Text style={styles.infoCardText}>
             1. Set your target protein amount (defaults to remaining for today){'\n'}
             2. Add ingredients with their protein content per 100g{'\n'}
-            3. Use the visual slider to adjust the ratio of each ingredient{'\n'}
-            4. Drag the points on the slider to change proportions{'\n'}
+            3. Use the visual slider to adjust the grams ratio of each ingredient{'\n'}
+            4. Drag the points on the slider to change grams proportions{'\n'}
             5. See calculated amounts needed of each ingredient{'\n'}
             {'\n'}
-            The slider divides ingredients into sections - drag points to adjust!
+            The slider divides ingredients by grams percentage - drag points to adjust!
           </Text>
         </View>
       </View>
@@ -572,6 +592,7 @@ const styles = StyleSheet.create({
     height: 80,
     position: 'relative',
     marginVertical: 20,
+    userSelect: 'none',
   },
   sliderLine: {
     position: 'absolute',
@@ -589,6 +610,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
+    userSelect: 'none',
   },
   sliderSectionLabel: {
     fontSize: 11,
@@ -596,12 +618,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     marginBottom: 2,
+    userSelect: 'none',
   },
   sliderSectionRatio: {
     fontSize: 13,
     color: '#3b82f6',
     fontWeight: 'bold',
     textAlign: 'center',
+    userSelect: 'none',
   },
   sliderPoint: {
     position: 'absolute',
