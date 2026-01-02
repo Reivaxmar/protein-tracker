@@ -1,5 +1,5 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, PanResponder, Animated } from 'react-native';
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { generateUniqueId, getTodayDateString } from '../utils/helpers';
 
@@ -143,33 +143,35 @@ export default function CalculateAmountsScreen() {
     }
   };
 
-  const handleSliderPointMove = (pointIndex: number, newPosition: number) => {
-    const newPoints = [...sliderPoints];
-    
-    // Clamp position between 0 and 100
-    let clampedPosition = Math.max(0, Math.min(100, newPosition));
-    
-    // Ensure point stays after previous point
-    if (pointIndex > 0 && clampedPosition <= sliderPoints[pointIndex - 1]) {
-      clampedPosition = sliderPoints[pointIndex - 1] + 0.1;
-    }
-    
-    // Ensure point stays before next point
-    if (pointIndex < sliderPoints.length - 1 && clampedPosition >= sliderPoints[pointIndex + 1]) {
-      clampedPosition = sliderPoints[pointIndex + 1] - 0.1;
-    }
-    
-    // Also clamp against boundaries (0 and 100)
-    if (pointIndex === 0) {
-      clampedPosition = Math.max(0.1, clampedPosition);
-    }
-    if (pointIndex === sliderPoints.length - 1) {
-      clampedPosition = Math.min(99.9, clampedPosition);
-    }
-    
-    newPoints[pointIndex] = clampedPosition;
-    setSliderPoints(newPoints);
-  };
+  const handleSliderPointMove = useCallback((pointIndex: number, newPosition: number) => {
+    setSliderPoints((currentPoints) => {
+      const newPoints = [...currentPoints];
+      
+      // Clamp position between 0 and 100
+      let clampedPosition = Math.max(0, Math.min(100, newPosition));
+      
+      // Ensure point stays after previous point
+      if (pointIndex > 0 && clampedPosition <= currentPoints[pointIndex - 1]) {
+        clampedPosition = currentPoints[pointIndex - 1] + 0.1;
+      }
+      
+      // Ensure point stays before next point
+      if (pointIndex < currentPoints.length - 1 && clampedPosition >= currentPoints[pointIndex + 1]) {
+        clampedPosition = currentPoints[pointIndex + 1] - 0.1;
+      }
+      
+      // Also clamp against boundaries (0 and 100)
+      if (pointIndex === 0) {
+        clampedPosition = Math.max(0.1, clampedPosition);
+      }
+      if (pointIndex === currentPoints.length - 1) {
+        clampedPosition = Math.min(99.9, clampedPosition);
+      }
+      
+      newPoints[pointIndex] = clampedPosition;
+      return newPoints;
+    });
+  }, []); // No dependencies needed since we use functional setState
 
   const panResponders = useMemo(() => {
     return sliderPoints.map((_, pointIndex) => {
@@ -194,7 +196,7 @@ export default function CalculateAmountsScreen() {
         },
       });
     });
-  }, [sliderPoints.length, sliderWidth]); // Only recreate when number of points changes or slider width changes
+  }, [sliderPoints.length, sliderWidth, handleSliderPointMove]); // Include handleSliderPointMove in dependencies
 
   const totalProteinCheck = useMemo(() => {
     if (calculatedAmounts.length === 0) return 0;
