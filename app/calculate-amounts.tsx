@@ -16,6 +16,8 @@ export default function CalculateAmountsScreen() {
   const [showAddIngredient, setShowAddIngredient] = useState(false);
   const [newIngredientName, setNewIngredientName] = useState('');
   const [newIngredientProtein, setNewIngredientProtein] = useState('');
+  const sliderWrapperRef = useRef<View>(null);
+  const [sliderWidth, setSliderWidth] = useState(300);
   
   const totalProteinToday = 0; // Hardcoded for now
   const targetProtein = 150; // Hardcoded for now
@@ -169,6 +171,29 @@ export default function CalculateAmountsScreen() {
     setSliderPoints(newPoints);
   };
 
+  const createPanResponder = (pointIndex: number) => {
+    return PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        // Gesture started
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        if (sliderWrapperRef.current) {
+          sliderWrapperRef.current.measure((x, y, width, height, pageX, pageY) => {
+            const touchX = evt.nativeEvent.pageX;
+            const relativeX = touchX - pageX;
+            const percentage = Math.max(0, Math.min(100, (relativeX / width) * 100));
+            handleSliderPointMove(pointIndex, percentage);
+          });
+        }
+      },
+      onPanResponderRelease: () => {
+        // Gesture ended
+      },
+    });
+  };
+
   const totalProteinCheck = useMemo(() => {
     if (calculatedAmounts.length === 0) return 0;
     return calculatedAmounts.reduce((sum, item) => sum + item.proteinAmount, 0);
@@ -261,7 +286,14 @@ export default function CalculateAmountsScreen() {
                     Drag the points to adjust the proportion of grams for each ingredient
                   </Text>
                   
-                  <View style={styles.sliderWrapper}>
+                  <View 
+                    style={styles.sliderWrapper}
+                    ref={sliderWrapperRef}
+                    onLayout={(event) => {
+                      const { width } = event.nativeEvent.layout;
+                      setSliderWidth(width);
+                    }}
+                  >
                     {/* Slider line */}
                     <View style={styles.sliderLine} />
                     
@@ -293,21 +325,18 @@ export default function CalculateAmountsScreen() {
                     })}
                     
                     {/* Draggable points */}
-                    {sliderPoints.map((point, index) => (
-                      <View
-                        key={`point-${index}`}
-                        style={[styles.sliderPoint, { left: `${point}%` }]}
-                        onStartShouldSetResponder={() => true}
-                        onResponderMove={(evt) => {
-                          const locationX = evt.nativeEvent.locationX;
-                          const sliderWidth = 300; // Approximate width
-                          const newPosition = (locationX / sliderWidth) * 100;
-                          handleSliderPointMove(index, point + (newPosition - point) * 0.1);
-                        }}
-                      >
-                        <View style={styles.sliderPointHandle} />
-                      </View>
-                    ))}
+                    {sliderPoints.map((point, index) => {
+                      const panResponder = createPanResponder(index);
+                      return (
+                        <View
+                          key={`point-${index}`}
+                          style={[styles.sliderPoint, { left: `${point}%` }]}
+                          {...panResponder.panHandlers}
+                        >
+                          <View style={styles.sliderPointHandle} />
+                        </View>
+                      );
+                    })}
                   </View>
                 </View>
               )}
@@ -586,17 +615,18 @@ const styles = StyleSheet.create({
   sliderHint: {
     fontSize: 12,
     color: '#6b7280',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   sliderWrapper: {
-    height: 80,
+    height: 100,
     position: 'relative',
     marginVertical: 20,
     userSelect: 'none',
+    width: '100%',
   },
   sliderLine: {
     position: 'absolute',
-    top: 40,
+    top: 48,
     left: 0,
     right: 0,
     height: 4,
@@ -606,7 +636,7 @@ const styles = StyleSheet.create({
   sliderSection: {
     position: 'absolute',
     top: 0,
-    height: 70,
+    height: 90,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
@@ -629,18 +659,18 @@ const styles = StyleSheet.create({
   },
   sliderPoint: {
     position: 'absolute',
-    top: 30,
-    width: 24,
-    height: 24,
-    marginLeft: -12,
+    top: 20,
+    width: 44,
+    height: 44,
+    marginLeft: -22,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
   },
   sliderPointHandle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#3b82f6',
     borderWidth: 3,
     borderColor: '#ffffff',
