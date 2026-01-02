@@ -171,28 +171,30 @@ export default function CalculateAmountsScreen() {
     setSliderPoints(newPoints);
   };
 
-  const createPanResponder = (pointIndex: number) => {
-    return PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        // Gesture started
-      },
-      onPanResponderMove: (evt, gestureState) => {
-        if (sliderWrapperRef.current) {
-          sliderWrapperRef.current.measure((x, y, width, height, pageX, pageY) => {
-            const touchX = evt.nativeEvent.pageX;
-            const relativeX = touchX - pageX;
-            const percentage = Math.max(0, Math.min(100, (relativeX / width) * 100));
-            handleSliderPointMove(pointIndex, percentage);
-          });
-        }
-      },
-      onPanResponderRelease: () => {
-        // Gesture ended
-      },
+  const panResponders = useMemo(() => {
+    return sliderPoints.map((_, pointIndex) => {
+      return PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => {
+          // Gesture started
+        },
+        onPanResponderMove: (evt, gestureState) => {
+          if (sliderWrapperRef.current && sliderWidth > 0) {
+            sliderWrapperRef.current.measure((x, y, width, height, pageX, pageY) => {
+              const touchX = evt.nativeEvent.pageX;
+              const relativeX = touchX - pageX;
+              const percentage = Math.max(0, Math.min(100, (relativeX / width) * 100));
+              handleSliderPointMove(pointIndex, percentage);
+            });
+          }
+        },
+        onPanResponderRelease: () => {
+          // Gesture ended
+        },
+      });
     });
-  };
+  }, [sliderPoints.length, sliderWidth]); // Only recreate when number of points changes or slider width changes
 
   const totalProteinCheck = useMemo(() => {
     if (calculatedAmounts.length === 0) return 0;
@@ -325,18 +327,15 @@ export default function CalculateAmountsScreen() {
                     })}
                     
                     {/* Draggable points */}
-                    {sliderPoints.map((point, index) => {
-                      const panResponder = createPanResponder(index);
-                      return (
-                        <View
-                          key={`point-${index}`}
-                          style={[styles.sliderPoint, { left: `${point}%` }]}
-                          {...panResponder.panHandlers}
-                        >
-                          <View style={styles.sliderPointHandle} />
-                        </View>
-                      );
-                    })}
+                    {sliderPoints.map((point, index) => (
+                      <View
+                        key={`point-${index}`}
+                        style={[styles.sliderPoint, { left: `${point}%` }]}
+                        {...panResponders[index].panHandlers}
+                      >
+                        <View style={styles.sliderPointHandle} />
+                      </View>
+                    ))}
                   </View>
                 </View>
               )}
