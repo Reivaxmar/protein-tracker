@@ -9,15 +9,21 @@ This guide explains how to deploy the Protein Tracker app to web, Android, and i
 - [Android Deployment](#android-deployment)
 - [iOS Deployment](#ios-deployment)
 - [Environment Variables](#environment-variables)
+- [Build Profiles Explained](#build-profiles-explained)
+- [Common Commands Summary](#common-commands-summary)
+- [Troubleshooting](#troubleshooting)
+- [Additional Resources](#additional-resources)
+- [Support](#support)
 
 ## Prerequisites
 
 Before deploying the app, ensure you have:
 
 1. **Node.js** (v20 or higher) and npm installed
-2. **Expo CLI** installed globally:
+2. **Expo CLI** (optional, npx can be used instead):
    ```bash
-   npm install -g expo-cli
+   npm install -g @expo/cli
+   # Or use npx expo for commands without global installation
    ```
 3. **EAS CLI** installed globally (for mobile builds):
    ```bash
