@@ -33,13 +33,6 @@ export default {
     plugins: [
       "expo-router",
       [
-        "expo-barcode-scanner",
-        {
-          cameraPermission:
-            "Allow Protein Tracker to access camera to scan barcodes."
-        }
-      ],
-      [
         "expo-camera",
         {
           cameraPermission:
