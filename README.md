@@ -164,6 +164,8 @@ OTA updates are configured in:
 - `eas.json`: Build profiles and update channels
 - `app/_layout.tsx`: Update check logic on app launch
 
+For detailed setup instructions, see [EAS_SETUP.md](./EAS_SETUP.md).
+
 For more information, see the [Expo Updates documentation](https://docs.expo.dev/versions/latest/sdk/updates/).
 
 ## License

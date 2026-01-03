@@ -24,7 +24,7 @@ export default function RootLayout() {
           }
         }
       } catch (error) {
-        // Handle errors silently - updates are not critical for app functionality
+        // Log errors for debugging - updates are not critical for app functionality
         console.error('Error checking for updates:', error);
       }
     }

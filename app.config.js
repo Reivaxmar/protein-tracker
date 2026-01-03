@@ -56,6 +56,8 @@ export default {
       policy: "appVersion"
     },
     updates: {
+      // Note: Replace YOUR_PROJECT_ID with your actual Expo project ID
+      // Or remove this field entirely - EAS will auto-configure it during build
       url: "https://u.expo.dev/YOUR_PROJECT_ID"
     }
   }
