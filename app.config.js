@@ -17,6 +17,7 @@ export default {
       supportsTablet: true
     },
     android: {
+      package: "com.anonymous.proteintracker",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
@@ -32,13 +33,6 @@ export default {
     },
     plugins: [
       "expo-router",
-      [
-        "expo-barcode-scanner",
-        {
-          cameraPermission:
-            "Allow Protein Tracker to access camera to scan barcodes."
-        }
-      ],
       [
         "expo-camera",
         {
