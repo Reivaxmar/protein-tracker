@@ -112,7 +112,7 @@ To deploy the app to Android devices and the Google Play Store, use Expo Applica
      "build": {
        "production": {
          "android": {
-           "buildType": "apk"
+           "buildType": "aab"
          }
        },
        "preview": {
