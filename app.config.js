@@ -51,6 +51,12 @@ export default {
       router: {
         basePath: "/protein-tracker" // <--- critical: must match repo name
       }
+    },
+    runtimeVersion: {
+      policy: "appVersion"
+    },
+    updates: {
+      url: "https://u.expo.dev/YOUR_PROJECT_ID"
     }
   }
 };
