@@ -166,6 +166,8 @@ OTA updates are configured in:
 
 For detailed setup instructions, see [EAS_SETUP.md](./EAS_SETUP.md).
 
+For deployment instructions (web and native), see [DEPLOY.md](./DEPLOY.md).
+
 For more information, see the [Expo Updates documentation](https://docs.expo.dev/versions/latest/sdk/updates/).
 
 ## License
