@@ -61,6 +61,15 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
+        name="calculate-amounts"
+        options={{
+          title: 'Calculator',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calculator" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
