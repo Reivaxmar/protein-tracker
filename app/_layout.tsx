@@ -2,12 +2,34 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
 import { useProteinStore } from '../store/proteinStore';
+import * as Updates from 'expo-updates';
 
 export default function RootLayout() {
   const loadData = useProteinStore((state) => state.loadData);
 
   useEffect(() => {
     loadData();
+    
+    // Check for OTA updates on app launch
+    async function checkForUpdates() {
+      try {
+        // Only check for updates in production builds, not in development
+        if (!__DEV__) {
+          const update = await Updates.checkForUpdateAsync();
+          
+          if (update.isAvailable) {
+            await Updates.fetchUpdateAsync();
+            // Reload the app to apply the update
+            await Updates.reloadAsync();
+          }
+        }
+      } catch (error) {
+        // Log errors for debugging - updates are not critical for app functionality
+        console.error('Error checking for updates:', error);
+      }
+    }
+    
+    checkForUpdates();
   }, []);
 
   return (

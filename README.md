@@ -17,6 +17,7 @@ A React Native Expo app for tracking daily protein intake.
 - **Zustand** for global state management
 - **AsyncStorage** for data persistence
 - **Expo Camera & Barcode Scanner** for scanning barcodes
+- **EAS Update** for over-the-air (OTA) updates
 - **StyleSheet** for styling (following React Native best practices)
 
 ## Installation
@@ -118,6 +119,56 @@ npx tsc --noEmit
 ```bash
 npm start
 ```
+
+## Over-The-Air (OTA) Updates
+
+This app is configured with **EAS Update** to deliver JavaScript and asset changes directly to users without requiring them to reinstall the app from the app store.
+
+### How It Works
+
+- The app automatically checks for updates on launch
+- If an update is available, it downloads and applies it automatically
+- Users will see the updated app on the next restart (or immediately if reloaded)
+- Updates only work for JavaScript code and assets (images, fonts, etc.)
+
+### What Requires a New Build
+
+**Native code changes** still require a full rebuild and resubmission to app stores. This includes:
+- Changes to `app.config.js` that affect native configuration (permissions, plugins, etc.)
+- Adding or updating native modules or dependencies
+- Modifying iOS or Android native code
+- Changing the app icon or splash screen
+- Updates to Expo SDK version
+
+### Publishing Updates
+
+To publish an OTA update:
+
+1. Make your JavaScript or asset changes
+2. Run the following command:
+   ```bash
+   eas update --branch production --message "Your update message"
+   ```
+3. Users will receive the update the next time they open the app
+
+### Update Channels
+
+The app uses different update channels for different environments:
+- **production**: Live app updates for production builds
+- **preview**: Testing updates before production release
+
+### Configuration
+
+OTA updates are configured in:
+- `app.config.js`: Runtime version and update URL
+- `eas.json`: Build profiles and update channels
+- `app/_layout.tsx`: Update check logic on app launch
+
+For detailed setup instructions, see [EAS_SETUP.md](./EAS_SETUP.md).
+
+For deployment instructions (web and native), see [DEPLOY.md](./DEPLOY.md).
+
+For more information, see the [Expo Updates documentation](https://docs.expo.dev/versions/latest/sdk/updates/).
 
 ## License
 
