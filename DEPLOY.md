@@ -1,242 +1,381 @@
 # Deployment Guide
 
-This document describes how to deploy the Protein Tracker app across different platforms.
+This guide explains how to deploy the Protein Tracker app to web, Android, and iOS platforms.
 
-## Overview
+## Table of Contents
 
-The Protein Tracker app has **two separate deployment workflows**:
+- [Prerequisites](#prerequisites)
+- [Web Deployment (GitHub Pages)](#web-deployment-github-pages)
+- [Android Deployment](#android-deployment)
+- [iOS Deployment](#ios-deployment)
+- [Environment Variables](#environment-variables)
+- [Build Profiles Explained](#build-profiles-explained)
+- [Common Commands Summary](#common-commands-summary)
+- [Troubleshooting](#troubleshooting)
+- [Additional Resources](#additional-resources)
+- [Support](#support)
 
-1. **Web Deployment** → GitHub Pages (automatic via GitHub Actions)
-2. **Native Apps (iOS/Android)** → App Stores + EAS Update for OTA updates
+## Prerequisites
+
+Before deploying the app, ensure you have:
+
+1. **Node.js** (v20 or higher) and npm installed
+2. **Expo CLI** (optional, npx can be used instead):
+   ```bash
+   npm install -g @expo/cli
+   # Or use npx expo for commands without global installation
+   ```
+3. **EAS CLI** installed globally (for mobile builds):
+   ```bash
+   npm install -g eas-cli
+   ```
+4. **Expo Account**: Create a free account at [expo.dev](https://expo.dev)
+5. All dependencies installed:
+   ```bash
+   npm install
+   ```
 
 ## Web Deployment (GitHub Pages)
 
+The app is configured to automatically deploy to GitHub Pages when code is pushed to the `main` branch.
+
 ### Automatic Deployment
 
-The web version deploys automatically to GitHub Pages when changes are pushed to the `main` branch.
+The deployment is handled by the GitHub Actions workflow (`.github/workflows/deploy.yml`):
 
-**Workflow:** `.github/workflows/deploy.yml`
+1. **Push to main branch**:
+   ```bash
+   git push origin main
+   ```
 
-1. **Checkout** the repository
-2. **Install** dependencies (`npm install`)
-3. **Build** for web (`npx expo export --platform web`)
-4. **Fix paths** for GitHub Pages using `fix-gh-pages-paths.js`
-5. **Deploy** to GitHub Pages
+2. **GitHub Actions will automatically**:
+   - Install dependencies
+   - Build the web version using `npx expo export --platform web`
+   - Fix paths for GitHub Pages subdirectory
+   - Deploy to GitHub Pages
 
-**Live URL:** https://reivaxmar.github.io/protein-tracker
+3. **Access your app** at:
+   ```
+   https://reivaxmar.github.io/protein-tracker
+   ```
 
 ### Manual Web Deployment
 
-To manually deploy the web version:
+If you need to deploy manually:
 
-```bash
-# Build the web version
-npx expo export --platform web
+1. **Build the web version**:
+   ```bash
+   npx expo export --platform web
+   ```
 
-# Fix paths for GitHub Pages
-node fix-gh-pages-paths.js
+2. **Fix paths for GitHub Pages** (if deploying to a subdirectory):
+   ```bash
+   node fix-gh-pages-paths.js
+   ```
 
-# Deploy (requires gh-pages branch setup)
-# The GitHub Actions workflow handles this automatically
+3. **Deploy the `dist` folder** to your web hosting service
+
+### Web Deployment Configuration
+
+The web deployment is configured in `app.config.js`:
+
+```javascript
+web: {
+  favicon: "./assets/favicon.png",
+  bundler: "metro",
+  output: "static"
+}
 ```
 
-### Important Notes
+And in `package.json`:
 
-- The app uses a custom `basePath` in `app.config.js` (`/protein-tracker`) to match the GitHub Pages URL structure
-- The `fix-gh-pages-paths.js` script converts absolute paths to relative paths for proper GitHub Pages operation
-- Web deployment does **not** use EAS Update (it's a direct static build)
+```json
+{
+  "homepage": "https://reivaxmar.github.io/protein-tracker"
+}
+```
 
-## Native App Deployment (iOS/Android)
+## Android Deployment
 
-Native app deployment involves two stages:
+To deploy the app to Android devices and the Google Play Store, use Expo Application Services (EAS Build).
 
-### 1. Initial App Store Release (Full Build)
+### Setup for Android
 
-For the first release or when native code changes are made:
+1. **Login to Expo**:
+   ```bash
+   eas login
+   ```
 
+2. **Configure your project**:
+   ```bash
+   eas build:configure
+   ```
+   
+   This creates an `eas.json` file. For Android, use this configuration:
+   
+   ```json
+   {
+     "build": {
+       "production": {
+         "android": {
+           "buildType": "aab"
+         }
+       },
+       "preview": {
+         "android": {
+           "buildType": "apk"
+         }
+       },
+       "development": {
+         "developmentClient": true,
+         "distribution": "internal"
+       }
+     }
+   }
+   ```
+
+### Building for Android
+
+1. **Build APK for testing** (doesn't require Google Play account):
+   ```bash
+   eas build --platform android --profile preview
+   ```
+
+2. **Build AAB for Google Play Store**:
+   ```bash
+   eas build --platform android --profile production
+   ```
+
+3. **Download the build** when complete:
+   - The EAS CLI will provide a download link
+   - Or visit https://expo.dev and navigate to your project builds
+
+### Submitting to Google Play Store
+
+1. **Create a Google Play Developer account** ($25 one-time fee)
+
+2. **Create an app** in the Google Play Console
+
+3. **Use EAS Submit**:
+   ```bash
+   eas submit --platform android
+   ```
+   
+   Or manually upload the AAB file to Google Play Console.
+
+4. **Complete the store listing**:
+   - App name, description, screenshots
+   - Privacy policy
+   - Content rating
+   - Pricing and distribution
+
+### Installing APK on Android Device
+
+For testing without Google Play:
+
+1. **Transfer the APK** to your Android device
+2. **Enable "Install from Unknown Sources"** in device settings
+3. **Open and install** the APK file
+
+## iOS Deployment
+
+To deploy the app to iOS devices and the App Store, use EAS Build with an Apple Developer account.
+
+### Prerequisites for iOS
+
+1. **Apple Developer Account** ($99/year)
+2. **Enrolled in the Apple Developer Program**
+
+### Setup for iOS
+
+1. **Login to Expo**:
+   ```bash
+   eas login
+   ```
+
+2. **Configure your project** (if not done already):
+   ```bash
+   eas build:configure
+   ```
+
+3. **Update `app.config.js`** with your bundle identifier:
+   ```javascript
+   ios: {
+     supportsTablet: true,
+     bundleIdentifier: "com.yourcompany.proteintracker"
+   }
+   ```
+
+### Building for iOS
+
+1. **Build for internal testing** (iOS Simulator):
+   ```bash
+   eas build --platform ios --profile development
+   ```
+
+2. **Build for TestFlight/App Store**:
+   ```bash
+   eas build --platform ios --profile production
+   ```
+
+3. **EAS will handle**:
+   - Creating necessary provisioning profiles
+   - Signing the app with your Apple Developer credentials
+   - Building the IPA file
+
+### Submitting to App Store
+
+1. **Use EAS Submit**:
+   ```bash
+   eas submit --platform ios
+   ```
+
+2. **Or manually via Xcode**:
+   - Download the IPA file
+   - Use Xcode's Application Loader or Transporter app
+   - Upload to App Store Connect
+
+3. **Complete the App Store listing**:
+   - App name, description, keywords
+   - Screenshots (multiple sizes required)
+   - Privacy policy
+   - App Store categories
+   - Pricing and availability
+
+4. **Submit for review**:
+   - Apple typically reviews apps within 24-48 hours
+   - Address any feedback from the review team
+
+### Testing on iOS Device
+
+For internal testing before App Store submission:
+
+1. **Use TestFlight**:
+   ```bash
+   eas build --platform ios --profile preview
+   eas submit --platform ios --profile preview
+   ```
+
+2. **Invite testers** through App Store Connect
+
+3. **Testers install** via TestFlight app on their iOS devices
+
+## Environment Variables
+
+If your app requires environment variables (API keys, etc.):
+
+1. **Create a `.env` file** (don't commit to git):
+   ```
+   API_KEY=your_api_key_here
+   ```
+
+2. **Use `eas.json` to set environment variables**:
+   ```json
+   {
+     "build": {
+       "production": {
+         "env": {
+           "API_KEY": "production_key"
+         }
+       }
+     }
+   }
+   ```
+
+3. **Or use EAS Secrets**:
+   ```bash
+   eas secret:create --name API_KEY --value your_api_key
+   ```
+
+## Build Profiles Explained
+
+- **development**: For development builds with debugging enabled
+- **preview**: For testing builds (APK for Android, TestFlight for iOS)
+- **production**: For store submissions (AAB for Google Play, IPA for App Store)
+
+## Common Commands Summary
+
+### Web
 ```bash
-# Install EAS CLI (if not already installed)
-npm install -g eas-cli
+# Build web
+npx expo export --platform web
 
-# Login to Expo
-eas login
+# Run web locally
+npm run web
+```
 
-# Initialize EAS project (first time only)
-eas project:init
+### Android
+```bash
+# Build APK
+eas build --platform android --profile preview
 
-# Configure app.config.js with your project ID
-# Update the updates.url field or remove it for auto-configuration
+# Build for Play Store
+eas build --platform android --profile production
 
+# Submit to Play Store
+eas submit --platform android
+```
+
+### iOS
+```bash
 # Build for iOS
 eas build --platform ios --profile production
 
-# Build for Android
-eas build --platform android --profile production
+# Submit to App Store
+eas submit --platform ios
+```
 
-# Or build for both platforms
+### Both Platforms
+```bash
+# Build for both
 eas build --platform all --profile production
+
+# Submit to both stores
+eas submit --platform all
 ```
-
-After the build completes:
-1. Download the build artifacts from the Expo dashboard
-2. Submit to Apple App Store / Google Play Store
-3. Wait for app review and approval
-
-### 2. Over-The-Air (OTA) Updates via EAS Update
-
-For **JavaScript and asset changes only** (no native code changes):
-
-```bash
-# Publish an update to the production channel
-eas update --branch production --message "Fix login bug"
-
-# Or publish to preview channel for testing
-eas update --branch preview --message "Testing new feature"
-```
-
-**Update Flow:**
-1. User opens the app
-2. App checks for updates (in `app/_layout.tsx`)
-3. If available, downloads the update
-4. Reloads the app with the new version
-
-### What Can Be Updated OTA
-
-✅ **OTA Updates (no rebuild required):**
-- JavaScript code changes
-- React components modifications
-- UI/UX changes (styles, layouts)
-- Business logic updates
-- Asset updates (images, fonts)
-- Bug fixes in JS code
-- Feature additions (if no native code needed)
-
-❌ **Requires Full Rebuild:**
-- Native code changes
-- New native modules/packages
-- Permission changes in `app.config.js`
-- Plugin configuration changes
-- Expo SDK version updates
-- App icon or splash screen changes
-- Changes to `runtimeVersion` policy
-
-## Build Profiles (eas.json)
-
-The project uses three build profiles:
-
-### Development
-```bash
-eas build --platform all --profile development
-```
-- Development client enabled
-- Internal distribution
-- For testing during development
-
-### Preview
-```bash
-eas build --platform all --profile preview
-```
-- Internal distribution
-- Uses `preview` update channel
-- For testing before production release
-
-### Production
-```bash
-eas build --platform all --profile production
-```
-- Production-ready build
-- Uses `production` update channel
-- For App Store / Google Play submission
-
-## Update Channels
-
-The app supports multiple update channels for phased rollouts:
-
-- **production**: Live app updates for production builds
-- **preview**: Testing updates before production release
-
-Configure channels in `eas.json` under each build profile.
-
-## Deployment Checklist
-
-### Before Web Deployment
-- [ ] Test the app locally with `npm start` and press `w` for web
-- [ ] Ensure all links and navigation work correctly
-- [ ] Verify the `basePath` in `app.config.js` matches the repository name
-- [ ] Merge changes to `main` branch (triggers automatic deployment)
-
-### Before Native App Store Release
-- [ ] Update version in `app.config.js` (e.g., "1.0.0" → "1.1.0")
-- [ ] Test on both iOS and Android devices
-- [ ] Review all native permissions in `app.config.js`
-- [ ] Update app store screenshots and descriptions if needed
-- [ ] Create a full build with `eas build`
-- [ ] Test the build thoroughly before submission
-- [ ] Submit to App Store / Google Play
-- [ ] Update release notes
-
-### Before OTA Update
-- [ ] Verify changes are JS/asset only (no native code)
-- [ ] Test changes locally with `npm start`
-- [ ] Consider publishing to `preview` channel first
-- [ ] Publish update with descriptive message
-- [ ] Monitor update adoption in Expo dashboard
-- [ ] Be ready to rollback if issues arise
-
-## Rollback Procedures
-
-### Web Deployment
-- Revert the commit in the `main` branch
-- GitHub Actions will automatically redeploy the previous version
-
-### OTA Update
-```bash
-# Rollback to a previous update
-eas update --branch production --message "Rollback to previous version" --republish
-```
-
-### Native App
-- Cannot be rolled back instantly
-- Must submit a new version to app stores
-- Consider using OTA update to fix critical issues if possible
-
-## Monitoring
-
-### Web Deployment
-- Check GitHub Actions workflow runs: https://github.com/Reivaxmar/protein-tracker/actions
-- View live site: https://reivaxmar.github.io/protein-tracker
-
-### Native App Updates
-- View update deployments in Expo dashboard: https://expo.dev
-- Monitor update adoption rates
-- Check for error reports
-- Review user feedback in app stores
 
 ## Troubleshooting
 
-### Web Deployment Fails
-1. Check GitHub Actions logs for errors
-2. Verify `fix-gh-pages-paths.js` runs successfully
-3. Test local build: `npx expo export --platform web`
-4. Ensure `basePath` is correctly configured
+### Camera Permissions on Mobile
 
-### EAS Build Fails
-1. Check Expo dashboard for build logs
-2. Verify EAS CLI is up to date: `npm install -g eas-cli@latest`
-3. Ensure all dependencies are properly installed
-4. Check `app.config.js` for configuration errors
+The app requires camera permissions for barcode scanning. Ensure the permissions are properly configured in `app.config.js`:
 
-### OTA Update Not Appearing
-1. Verify app is a production build (not development)
-2. Check `runtimeVersion` matches the build
-3. Ensure project ID in `updates.url` is correct
-4. Check Expo dashboard for update status
-5. Wait a few minutes - updates may take time to propagate
+```javascript
+plugins: [
+  [
+    "expo-camera",
+    {
+      cameraPermission: "Allow Protein Tracker to access camera to scan barcodes."
+    }
+  ]
+]
+```
+
+### Build Failures
+
+- **Check logs**: EAS provides detailed build logs
+- **Dependencies**: Ensure all dependencies are compatible with the Expo SDK version
+- **Clear cache**: Try `eas build --platform [platform] --clear-cache`
+
+### Web Routing Issues
+
+If the app doesn't work correctly on GitHub Pages:
+
+- Verify the `basePath` in `app.config.js` matches your repository name
+- Ensure `fix-gh-pages-paths.js` is properly fixing asset paths
 
 ## Additional Resources
 
-- [EAS Setup Guide](./EAS_SETUP.md) - Detailed EAS Update configuration
-- [Expo Web Documentation](https://docs.expo.dev/distribution/publishing-websites/)
+- [Expo Documentation](https://docs.expo.dev/)
 - [EAS Build Documentation](https://docs.expo.dev/build/introduction/)
-- [EAS Update Documentation](https://docs.expo.dev/eas-update/introduction/)
-- [GitHub Pages Documentation](https://docs.github.com/en/pages)
+- [EAS Submit Documentation](https://docs.expo.dev/submit/introduction/)
+- [App Store Connect](https://appstoreconnect.apple.com/)
+- [Google Play Console](https://play.google.com/console/)
+- [Expo Application Services](https://expo.dev/eas)
+
+## Support
+
+For issues or questions:
+- Check the [Expo Forums](https://forums.expo.dev/)
+- Review the [GitHub Issues](https://github.com/Reivaxmar/protein-tracker/issues)
+- Consult the [React Native documentation](https://reactnative.dev/)
