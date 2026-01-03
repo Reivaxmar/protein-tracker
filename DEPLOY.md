@@ -11,6 +11,7 @@ This guide explains how to deploy the Protein Tracker app to web, Android, and i
 - [Environment Variables](#environment-variables)
 - [Build Profiles Explained](#build-profiles-explained)
 - [Common Commands Summary](#common-commands-summary)
+- [EAS Updates (Over-the-Air Updates)](#eas-updates-over-the-air-updates)
 - [Troubleshooting](#troubleshooting)
 - [Additional Resources](#additional-resources)
 - [Support](#support)
@@ -364,11 +365,132 @@ If the app doesn't work correctly on GitHub Pages:
 - Verify the `basePath` in `app.config.js` matches your repository name
 - Ensure `fix-gh-pages-paths.js` is properly fixing asset paths
 
+## EAS Updates (Over-the-Air Updates)
+
+EAS Update allows you to publish over-the-air (OTA) updates to your app without going through the app stores.
+
+### Prerequisites for OTA Updates
+
+Before you can publish OTA updates:
+
+1. **EAS CLI must be installed** (see Prerequisites section above)
+
+2. **Login to EAS CLI**:
+   ```bash
+   eas login
+   ```
+
+3. **Update the Project ID** in `app.config.js`:
+   - Run `eas project:init` to create/link your project
+   - Find your project ID in the Expo dashboard or by running `eas project:info`
+   - Update `app.config.js`:
+     ```javascript
+     updates: {
+       url: "https://u.expo.dev/YOUR_PROJECT_ID"  // Replace with actual project ID
+     }
+     ```
+   - Alternatively, you can remove the `updates.url` field and let EAS automatically configure it during the build process.
+
+4. **Build Your App** with EAS Update support:
+   ```bash
+   # For both platforms
+   eas build --platform all --profile production
+   ```
+
+### Publishing Updates
+
+Once your app is built and distributed, you can publish OTA updates:
+
+#### Production Updates
+```bash
+eas update --branch production --message "Fix for login bug"
+```
+
+#### Preview Updates (for testing)
+```bash
+eas update --branch preview --message "Testing new feature"
+```
+
+### How OTA Updates Work
+
+1. **On App Launch**: The app checks for updates when it starts (only in production builds)
+2. **Download**: If an update is available, it's downloaded in the background
+3. **Apply**: The update is applied automatically, and the app reloads
+4. **Seamless**: Users get the latest version without going to the app store
+
+### Update Behavior
+
+- **Development Mode**: Updates are NOT checked in development mode (`expo start`)
+- **Production Builds**: Updates are checked every time the app launches
+- **Silent Updates**: The update process happens silently without user interaction
+- **Error Handling**: If update check fails, the app continues to work normally
+
+### What Can Be Updated OTA
+
+✅ **Can be updated OTA:**
+- JavaScript code changes
+- React components
+- Business logic
+- Styles and layouts
+- Assets (images, fonts)
+- Configuration that doesn't affect native code
+
+❌ **Cannot be updated OTA (requires new build):**
+- Native code changes
+- New native modules or packages
+- Changes to `app.config.js` that affect native configuration
+- Permission changes
+- Plugin configuration changes
+- Expo SDK version updates
+- App icon or splash screen
+
+### Rollback
+
+If you need to rollback to a previous version:
+
+```bash
+eas update --branch production --message "Rollback to previous version" --republish
+```
+
+### Monitoring Updates
+
+You can monitor your updates in the Expo dashboard:
+1. Go to https://expo.dev
+2. Select your project
+3. Navigate to "Updates" section
+4. View deployment history, adoption rates, and errors
+
+### Best Practices for OTA Updates
+
+1. **Test Before Publishing**: Always test updates in preview channel before production
+2. **Meaningful Messages**: Use descriptive messages when publishing updates
+3. **Monitor Adoption**: Check the Expo dashboard to see how many users have the update
+4. **Gradual Rollout**: Consider using branches to gradually roll out updates
+5. **Version Tracking**: Keep track of which features require new builds vs OTA updates
+
+### Troubleshooting OTA Updates
+
+#### Updates Not Appearing
+
+1. Verify the app is a production build (not development)
+2. Check that the `runtimeVersion` in `app.config.js` matches your build
+3. Ensure the project ID in `updates.url` is correct
+4. Check the Expo dashboard for update status
+
+#### Runtime Errors After Update
+
+1. Check the Expo dashboard for error reports
+2. Roll back to the previous version if necessary
+3. Test the update locally before publishing
+
 ## Additional Resources
 
 - [Expo Documentation](https://docs.expo.dev/)
 - [EAS Build Documentation](https://docs.expo.dev/build/introduction/)
 - [EAS Submit Documentation](https://docs.expo.dev/submit/introduction/)
+- [EAS Update Documentation](https://docs.expo.dev/eas-update/introduction/)
+- [Expo Updates SDK Documentation](https://docs.expo.dev/versions/latest/sdk/updates/)
+- [Runtime Version Policies](https://docs.expo.dev/eas-update/runtime-versions/)
 - [App Store Connect](https://appstoreconnect.apple.com/)
 - [Google Play Console](https://play.google.com/console/)
 - [Expo Application Services](https://expo.dev/eas)
