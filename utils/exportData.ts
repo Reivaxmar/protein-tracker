@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { Platform } from 'react-native';
 import { Meal, DailyProteinData } from '../types';
 
 interface ExportData {
@@ -126,12 +127,26 @@ export async function exportAsCSV(data: ExportData): Promise<void> {
     
     const csv = arrayToCSV(formattedData);
     const fileName = generateExportFileName('csv');
+
+    // Web fallback: trigger browser download directly
+    if (Platform.OS === 'web' || typeof window !== 'undefined') {
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      return;
+    }
+
     const fileUri = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + fileName;
-    
     await FileSystem.writeAsStringAsync(fileUri, csv, {
       encoding: FileSystem.EncodingType.UTF8,
     });
-    
+
     // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync();
     if (isAvailable) {
@@ -178,14 +193,36 @@ export async function exportAsXLSX(data: ExportData): Promise<void> {
     
     // Write the workbook to base64
     const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-    
+
     const fileName = generateExportFileName('xlsx');
+
+    // Web fallback: create blob from base64 and trigger download
+    if (Platform.OS === 'web' || typeof window !== 'undefined') {
+      // convert base64 to binary
+      const byteCharacters = atob(wbout);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      return;
+    }
+
     const fileUri = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + fileName;
-    
+
     await FileSystem.writeAsStringAsync(fileUri, wbout, {
       encoding: FileSystem.EncodingType.Base64,
     });
-    
+
     // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync();
     if (isAvailable) {
