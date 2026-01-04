@@ -215,9 +215,7 @@ export default function CalculateAmountsScreen() {
       <View style={styles.content}>
         <View style={styles.card}>
           <Text style={styles.title}>{t.calculator.title}</Text>
-          <Text style={styles.subtitle}>
-            Set a protein target and ingredient ratios to calculate exact amounts needed
-          </Text>
+          <Text style={styles.subtitle}>{t.calculator.subtitle}</Text>
         </View>
 
         <View style={styles.card}>
@@ -226,7 +224,7 @@ export default function CalculateAmountsScreen() {
           <View style={styles.infoBox}>
             <Text style={styles.infoLabel}>{t.calculator.yourStatus}</Text>
             <Text style={styles.infoText}>
-              Daily Limit: {targetProtein}g • Consumed: {totalProteinToday.toFixed(1)}g • Remaining: {Math.max(0, targetProtein - totalProteinToday).toFixed(1)}g
+              {t.calculator.dailyLimit} {targetProtein}g • {t.calculator.consumed} {totalProteinToday.toFixed(1)}g • {t.calculator.remaining} {Math.max(0, targetProtein - totalProteinToday).toFixed(1)}g
             </Text>
           </View>
 
@@ -240,9 +238,7 @@ export default function CalculateAmountsScreen() {
               keyboardType="decimal-pad"
               placeholderTextColor="#9ca3af"
             />
-            <Text style={styles.hint}>
-              Amount of protein you want to consume
-            </Text>
+            <Text style={styles.hint}>{t.calculator.hint}</Text>
           </View>
         </View>
 
@@ -253,9 +249,7 @@ export default function CalculateAmountsScreen() {
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>🥗</Text>
               <Text style={styles.emptyText}>{t.calculator.noIngredientsYet}</Text>
-              <Text style={styles.emptyHint}>
-                Add ingredients and use the slider to set ratios
-              </Text>
+              <Text style={styles.emptyHint}>{t.calculator.noIngredientsHint}</Text>
             </View>
           ) : (
             <View>
@@ -288,9 +282,7 @@ export default function CalculateAmountsScreen() {
               {ingredients.length > 1 && (
                 <View style={styles.sliderContainer}>
                   <Text style={styles.sliderTitle}>{t.calculator.adjustGramsRatios}</Text>
-                  <Text style={styles.sliderHint}>
-                    Drag the points to adjust the proportion of grams for each ingredient
-                  </Text>
+                    <Text style={styles.sliderHint}>{t.calculator.adjustHint}</Text>
                   
                   <View 
                     style={styles.sliderWrapper}
@@ -436,9 +428,7 @@ export default function CalculateAmountsScreen() {
                   keyboardType="decimal-pad"
                   placeholderTextColor="#9ca3af"
                 />
-                <Text style={styles.hint}>
-                  Ratios will be set using the slider after adding
-                </Text>
+                <Text style={styles.hint}>{t.calculator.ratiosWillBeSet}</Text>
               </View>
 
               <TouchableOpacity

@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 export default function HomeScreen() {
   const today = getTodayDateString();
   const t = useLanguageStore((state) => state.translations);
+  const language = useLanguageStore((state) => state.language);
   // Select the stored data only (avoid constructing a new object inside selector)
   const storedTodayData = useProteinStore((state) => state.dailyProteinData[today]);
   const targetProtein = useProteinStore((state) => state.targetProtein);
@@ -32,7 +33,7 @@ export default function HomeScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t.home.title}</Text>
-          <Text style={styles.dateText}>{formatDate(todayData.date)}</Text>
+          <Text style={styles.dateText}>{formatDate(todayData.date, language)}</Text>
         </View>
 
         <View style={styles.card}>

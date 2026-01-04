@@ -75,15 +75,15 @@ export default function CreateRecipeScreen() {
       } else {
         setScanLoading(false);
         Alert.alert(
-          'Product Not Found',
-          `No product information found for barcode: ${barcode}`,
+          t.error,
+          `${t.quickMeal.productNotFound} ${barcode}`,
           [
             {
-              text: 'Try Again',
+              text: t.quickMeal.tryAgain,
               onPress: () => setScanned(false),
             },
             {
-              text: 'Cancel',
+              text: t.cancel,
               onPress: () => {
                 setShowScanner(false);
                 setScanned(false);
@@ -316,7 +316,7 @@ export default function CreateRecipeScreen() {
               onPress={() => setShowFilters(!showFilters)}
             >
               <Text style={styles.filterButtonText}>
-                {showFilters ? '▼ Filters' : '▶ Filters'}
+                {showFilters ? '▼' : '▶'} {t.createRecipe.filters}
               </Text>
             </TouchableOpacity>
             
