@@ -2,7 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert 
 import { useState } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
-import { useTagStore } from '../store/tagStore';
+import { useTagStore, DEFAULT_TAGS } from '../store/tagStore';
 import { Language } from '../translations';
 
 export default function SettingsScreen() {
@@ -47,8 +47,7 @@ export default function SettingsScreen() {
   };
 
   const handleRemoveTag = (tag: string) => {
-    const defaultTags = ['breakfast', 'lunch', 'dinner'];
-    if (defaultTags.includes(tag.toLowerCase())) {
+    if (DEFAULT_TAGS.includes(tag.toLowerCase())) {
       Alert.alert(t.error, 'Cannot remove default tags');
       return;
     }

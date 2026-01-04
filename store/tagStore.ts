@@ -11,7 +11,7 @@ export interface TagStoreState {
   saveTags: () => Promise<void>;
 }
 
-const DEFAULT_TAGS = ['breakfast', 'lunch', 'dinner'];
+export const DEFAULT_TAGS = ['breakfast', 'lunch', 'dinner'];
 
 export const useTagStore = create<TagStoreState>((set, get) => ({
   tags: DEFAULT_TAGS,
@@ -43,10 +43,16 @@ export const useTagStore = create<TagStoreState>((set, get) => ({
     try {
       const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
       if (jsonValue != null) {
-        const loadedTags = JSON.parse(jsonValue);
-        // Ensure default tags are always present
-        const allTags = [...new Set([...DEFAULT_TAGS, ...loadedTags])];
-        set({ tags: allTags });
+        try {
+          const loadedTags = JSON.parse(jsonValue);
+          // Ensure default tags are always present
+          const allTags = [...new Set([...DEFAULT_TAGS, ...loadedTags])];
+          set({ tags: allTags });
+        } catch (parseError) {
+          console.error('Error parsing tags from storage:', parseError);
+          // If parsing fails, reset to default tags
+          set({ tags: DEFAULT_TAGS });
+        }
       }
     } catch (e) {
       console.error('Error loading tags:', e);
