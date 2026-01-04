@@ -51,7 +51,7 @@ export default function RecipesScreen() {
     if (promptMode === 'servings') {
       const servingCount = parseFloat(value || '1');
       if (isNaN(servingCount) || servingCount <= 0) {
-        Alert.alert(t.error, 'Please enter a valid number of servings');
+        Alert.alert(t.error, t.recipes.errorInvalidServings);
         return;
       }
       
@@ -73,7 +73,7 @@ export default function RecipesScreen() {
     } else {
       const gramsAmount = parseFloat(value || '0');
       if (isNaN(gramsAmount) || gramsAmount <= 0) {
-        Alert.alert(t.error, 'Please enter a valid weight in grams');
+        Alert.alert(t.error, t.recipes.errorInvalidGrams);
         return;
       }
       
@@ -171,7 +171,7 @@ export default function RecipesScreen() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t.recipes.title}</Text>
           <Text style={styles.headerSubtitle}>
-            {recipes.length} {recipes.length !== 1 ? t.recipes.ingredients : t.recipes.ingredient} {t.recipes.subtitle}
+            {recipes.length} {recipes.length !== 1 ? t.recipes.recipeSaved : t.recipes.recipe}
           </Text>
         </View>
 

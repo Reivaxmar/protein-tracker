@@ -119,6 +119,10 @@ export interface Translations {
     totalRecipe: string;
     log: string;
     logByWeight: string;
+    errorInvalidServings: string;
+    errorInvalidGrams: string;
+    recipe: string;
+    recipeSaved: string;
   };
   
   // Create Recipe Screen
@@ -320,6 +324,10 @@ export const translations: Record<Language, Translations> = {
       totalRecipe: 'Total recipe:',
       log: 'Log',
       logByWeight: 'Log by Weight',
+      errorInvalidServings: 'Please enter a valid number of servings',
+      errorInvalidGrams: 'Please enter a valid weight in grams',
+      recipe: 'recipe',
+      recipeSaved: 'recipes saved',
     },
     
     // Create Recipe Screen
@@ -519,6 +527,10 @@ export const translations: Record<Language, Translations> = {
       totalRecipe: 'Receta total:',
       log: 'Registrar',
       logByWeight: 'Registrar por Peso',
+      errorInvalidServings: 'Por favor ingresa un número válido de porciones',
+      errorInvalidGrams: 'Por favor ingresa un peso válido en gramos',
+      recipe: 'receta',
+      recipeSaved: 'recetas guardadas',
     },
     
     // Create Recipe Screen
