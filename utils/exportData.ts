@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { File, Paths } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { Meal, DailyProteinData } from '../types';
 
@@ -116,14 +116,16 @@ export async function exportAsCSV(data: ExportData): Promise<void> {
     
     const csv = arrayToCSV(formattedData);
     const fileName = `protein_tracker_export_${new Date().toISOString().split('T')[0]}.csv`;
-    const file = new File(Paths.cache, fileName);
+    const fileUri = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + fileName;
     
-    file.write(csv);
+    await FileSystem.writeAsStringAsync(fileUri, csv, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
     
     // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync();
     if (isAvailable) {
-      await Sharing.shareAsync(file.uri, {
+      await Sharing.shareAsync(fileUri, {
         mimeType: 'text/csv',
         dialogTitle: 'Export Protein Tracker Data',
         UTI: 'public.comma-separated-values-text',
@@ -164,19 +166,20 @@ export async function exportAsXLSX(data: ExportData): Promise<void> {
       { wch: 25 }, // Timestamp
     ];
     
-    // Write the workbook to array buffer
-    const wbout = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+    // Write the workbook to base64
+    const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
     
     const fileName = `protein_tracker_export_${new Date().toISOString().split('T')[0]}.xlsx`;
-    const file = new File(Paths.cache, fileName);
+    const fileUri = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + fileName;
     
-    // Write as Uint8Array
-    file.write(new Uint8Array(wbout));
+    await FileSystem.writeAsStringAsync(fileUri, wbout, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
     
     // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync();
     if (isAvailable) {
-      await Sharing.shareAsync(file.uri, {
+      await Sharing.shareAsync(fileUri, {
         mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         dialogTitle: 'Export Protein Tracker Data',
         UTI: 'org.openxmlformats.spreadsheetml.sheet',
