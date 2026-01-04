@@ -1,10 +1,12 @@
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useProteinStore } from '../store/proteinStore';
+import { useLanguageStore } from '../store/languageStore';
 import { formatProtein, formatDate, getTodayDateString } from '../utils/helpers';
 import { useMemo } from 'react';
 
 export default function HomeScreen() {
   const today = getTodayDateString();
+  const t = useLanguageStore((state) => state.translations);
   // Select the stored data only (avoid constructing a new object inside selector)
   const storedTodayData = useProteinStore((state) => state.dailyProteinData[today]);
   const targetProtein = useProteinStore((state) => state.targetProtein);
@@ -29,29 +31,29 @@ export default function HomeScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Protein Tracker</Text>
+          <Text style={styles.headerTitle}>{t.home.title}</Text>
           <Text style={styles.dateText}>{formatDate(todayData.date)}</Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Today's Progress</Text>
+          <Text style={styles.cardTitle}>{t.home.todaysProgress}</Text>
           
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
               <Text style={styles.statValue}>{formatProtein(todayData.totalProtein)}</Text>
-              <Text style={styles.statLabel}>Consumed</Text>
+              <Text style={styles.statLabel}>{t.home.consumed}</Text>
             </View>
             
             <View style={styles.statBox}>
               <Text style={[styles.statValue, remaining < 0 && styles.statValueOver]}>
                 {formatProtein(Math.abs(remaining))}
               </Text>
-              <Text style={styles.statLabel}>{remaining >= 0 ? 'Below Limit' : 'Over Limit'}</Text>
+              <Text style={styles.statLabel}>{remaining >= 0 ? t.home.belowLimit : t.home.overLimit}</Text>
             </View>
             
             <View style={styles.statBox}>
               <Text style={styles.statValue}>{formatProtein(targetProtein)}</Text>
-              <Text style={styles.statLabel}>Daily Limit</Text>
+              <Text style={styles.statLabel}>{t.home.dailyLimit}</Text>
             </View>
           </View>
 
@@ -67,23 +69,23 @@ export default function HomeScreen() {
               />
             </View>
             <Text style={styles.progressText}>
-              {percentage.toFixed(0)}% of Daily Limit
-              {isOverLimit && ' (Over Limit!)'}
+              {percentage.toFixed(0)}% {t.home.ofDailyLimit}
+              {isOverLimit && ` (${t.home.overLimit}!)`}
             </Text>
           </View>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Today's Meals</Text>
+          <Text style={styles.cardTitle}>{t.home.todaysMeals}</Text>
           {todayData.meals.length === 0 ? (
-            <Text style={styles.emptyText}>No meals added yet today</Text>
+            <Text style={styles.emptyText}>{t.home.noMealsYet}</Text>
           ) : (
             todayData.meals.map((meal) => (
               <View key={meal.id} style={styles.mealItem}>
                 <View style={styles.mealInfo}>
                   <Text style={styles.mealName}>{meal.name}</Text>
                   <Text style={styles.mealDetails}>
-                    {meal.gramsEaten}g ({meal.proteinPer100g}g protein/100g)
+                    {meal.gramsEaten}g ({meal.proteinPer100g}{t.home.proteinPer100g})
                   </Text>
                 </View>
                 <Text style={styles.mealProtein}>{formatProtein(meal.totalProtein)}</Text>
