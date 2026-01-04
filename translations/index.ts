@@ -49,6 +49,13 @@ export interface Translations {
     featuresText: string;
     language: string;
     selectLanguage: string;
+    exportData: string;
+    exportCSV: string;
+    exportXLSX: string;
+    exportDescription: string;
+    exportSuccess: string;
+    exportError: string;
+    noDataToExport: string;
   };
   
   // Quick Meal Screen
@@ -254,6 +261,13 @@ export const translations: Record<Language, Translations> = {
       featuresText: '✓ Track daily protein intake\n✓ Add meals with custom protein values\n✓ Scan barcodes (requires food database integration)\n✓ Monitor remaining allowance below your limit\n✓ Data persists across app restarts',
       language: 'Language',
       selectLanguage: 'Select Language',
+      exportData: 'Export Data',
+      exportCSV: 'Export as CSV',
+      exportXLSX: 'Export as Excel',
+      exportDescription: 'Export all your meal data with dates and tags to a file that you can open in Excel or other spreadsheet applications.',
+      exportSuccess: 'Data exported successfully!',
+      exportError: 'Error exporting data',
+      noDataToExport: 'No data available to export',
     },
     
     // Quick Meal Screen
@@ -457,6 +471,13 @@ export const translations: Record<Language, Translations> = {
       featuresText: '✓ Seguimiento diario de proteínas\n✓ Añadir comidas con valores de proteínas personalizados\n✓ Escanear códigos de barras (requiere integración con base de datos de alimentos)\n✓ Monitorizar el margen restante por debajo de tu límite\n✓ Los datos se conservan entre reinicios de la aplicación',
       language: 'Idioma',
       selectLanguage: 'Seleccionar Idioma',
+      exportData: 'Exportar Datos',
+      exportCSV: 'Exportar como CSV',
+      exportXLSX: 'Exportar como Excel',
+      exportDescription: 'Exporta todos tus datos de comidas con fechas y etiquetas a un archivo que puedes abrir en Excel u otras aplicaciones de hojas de cálculo.',
+      exportSuccess: '¡Datos exportados correctamente!',
+      exportError: 'Error al exportar datos',
+      noDataToExport: 'No hay datos disponibles para exportar',
     },
     
     // Pantalla de Comida Rápida
