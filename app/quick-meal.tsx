@@ -1,6 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Modal } from 'react-native';
 import { useState, useMemo } from 'react';
 import { useProteinStore } from '../store/proteinStore';
+import { useLanguageStore } from '../store/languageStore';
 import { searchProducts, OpenFoodFactsProduct, fetchProductByBarcode, ProductSearchFilters } from '../utils/api';
 import { getTodayDateString, generateUniqueId } from '../utils/helpers';
 import { useRouter } from 'expo-router';
@@ -8,18 +9,6 @@ import { CameraView, Camera } from 'expo-camera';
 
 const SEARCH_PAGE_SIZE = 10;
 const SEARCH_PAGE_NUMBER = 1;
-
-// Common food categories
-const FOOD_CATEGORIES = [
-  { label: 'All', value: '' },
-  { label: 'Meats', value: 'meats' },
-  { label: 'Dairy', value: 'dairies' },
-  { label: 'Fish', value: 'fish' },
-  { label: 'Vegetables', value: 'vegetables' },
-  { label: 'Fruits', value: 'fruits' },
-  { label: 'Grains', value: 'cereals-and-potatoes' },
-  { label: 'Legumes', value: 'legumes' },
-];
 
 interface QuickMealIngredient {
   id: string;
@@ -31,6 +20,19 @@ interface QuickMealIngredient {
 
 export default function QuickMealScreen() {
   const router = useRouter();
+  const t = useLanguageStore((state) => state.translations);
+  
+  // Common food categories - now using translations
+  const FOOD_CATEGORIES = [
+    { label: t.categories.all, value: '' },
+    { label: t.categories.meats, value: 'meats' },
+    { label: t.categories.dairy, value: 'dairies' },
+    { label: t.categories.fish, value: 'fish' },
+    { label: t.categories.vegetables, value: 'vegetables' },
+    { label: t.categories.fruits, value: 'fruits' },
+    { label: t.categories.grains, value: 'cereals-and-potatoes' },
+    { label: t.categories.legumes, value: 'legumes' },
+  ];
   
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<OpenFoodFactsProduct[]>([]);
@@ -79,15 +81,15 @@ export default function QuickMealScreen() {
       } else {
         setScanLoading(false);
         Alert.alert(
-          'Product Not Found',
-          `No product information found for barcode: ${barcode}`,
+          t.quickMeal.productNotFound,
+          `${t.quickMeal.productNotFound} ${barcode}`,
           [
             {
-              text: 'Try Again',
+              text: t.quickMeal.tryAgain,
               onPress: () => setScanned(false),
             },
             {
-              text: 'Cancel',
+              text: t.cancel,
               onPress: () => {
                 setShowScanner(false);
                 setScanned(false);
@@ -98,7 +100,7 @@ export default function QuickMealScreen() {
       }
     } catch (error) {
       setScanLoading(false);
-      Alert.alert('Error', 'Failed to fetch product information. Please try again.', [
+      Alert.alert(t.error, 'Failed to fetch product information. Please try again.', [
         {
           text: 'OK',
           onPress: () => setScanned(false),
@@ -115,13 +117,13 @@ export default function QuickMealScreen() {
       setShowScanner(true);
       setScanned(false);
     } else {
-      Alert.alert('Permission Required', 'Camera permission is required to scan barcodes.');
+      Alert.alert('Permission Required', t.quickMeal.cameraPermissionRequired);
     }
   };
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
-      Alert.alert('Error', 'Please enter a search term');
+      Alert.alert(t.error, 'Please enter a search term');
       return;
     }
 
@@ -144,10 +146,10 @@ export default function QuickMealScreen() {
       const results = await searchProducts(searchTerm, SEARCH_PAGE_NUMBER, SEARCH_PAGE_SIZE, filters);
       setSearchResults(results);
       if (results.length === 0) {
-        Alert.alert('No Results', 'No products found matching your criteria');
+        Alert.alert('No Results', t.quickMeal.noResults);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to search for products');
+      Alert.alert(t.error, 'Failed to search for products');
     } finally {
       setSearching(false);
     }
@@ -161,17 +163,17 @@ export default function QuickMealScreen() {
 
   const handleAddIngredient = () => {
     if (!selectedProduct) {
-      Alert.alert('Error', 'No product selected');
+      Alert.alert(t.error, t.quickMeal.errorNoProduct);
       return;
     }
 
     if (!selectedProduct.nutriments?.proteins_100g) {
-      Alert.alert('Error', 'This product does not have protein information');
+      Alert.alert(t.error, t.quickMeal.errorNoProtein);
       return;
     }
 
     if (!gramsForIngredient || parseFloat(gramsForIngredient) <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount in grams');
+      Alert.alert(t.error, t.quickMeal.errorInvalidAmount);
       return;
     }
 
@@ -190,7 +192,7 @@ export default function QuickMealScreen() {
     setIngredients([...ingredients, newIngredient]);
     setSelectedProduct(null);
     setGramsForIngredient('');
-    Alert.alert('Success', 'Ingredient added');
+    Alert.alert(t.success, t.quickMeal.ingredientAdded);
   };
 
   const handleRemoveIngredient = (id: string) => {
@@ -199,17 +201,17 @@ export default function QuickMealScreen() {
 
   const handleAddCustomIngredient = () => {
     if (!customIngredientName.trim()) {
-      Alert.alert('Error', 'Please enter an ingredient name');
+      Alert.alert(t.error, 'Please enter an ingredient name');
       return;
     }
 
     if (!customIngredientProtein || parseFloat(customIngredientProtein) < 0) {
-      Alert.alert('Error', 'Please enter a valid protein amount (g/100g)');
+      Alert.alert(t.error, 'Please enter a valid protein amount (g/100g)');
       return;
     }
 
     if (!customIngredientGrams || parseFloat(customIngredientGrams) <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount in grams');
+      Alert.alert(t.error, t.quickMeal.errorInvalidAmount);
       return;
     }
 
@@ -230,7 +232,7 @@ export default function QuickMealScreen() {
     setCustomIngredientProtein('');
     setCustomIngredientGrams('');
     setShowCustomIngredient(false);
-    Alert.alert('Success', 'Custom ingredient added');
+    Alert.alert(t.success, t.quickMeal.ingredientAdded);
   };
 
   const calculateTotalProtein = () => {
@@ -243,7 +245,7 @@ export default function QuickMealScreen() {
 
   const handleLogMeal = () => {
     if (ingredients.length === 0) {
-      Alert.alert('Error', 'Please add at least one ingredient');
+      Alert.alert(t.error, t.quickMeal.errorAtLeastOne);
       return;
     }
 
@@ -263,16 +265,16 @@ export default function QuickMealScreen() {
       date: getTodayDateString(),
     });
 
-    Alert.alert('Success', `Meal logged! ${totalProtein.toFixed(1)}g protein added.`, [
+    Alert.alert(t.success, `${t.quickMeal.mealLogged} ${totalProtein.toFixed(1)}g protein added.`, [
       {
-        text: 'View Home',
+        text: t.quickMeal.viewHome,
         onPress: () => {
           setIngredients([]);
           router.push('/');
         },
       },
       {
-        text: 'Add Another',
+        text: t.quickMeal.addAnother,
         onPress: () => {
           setIngredients([]);
         },
@@ -284,19 +286,19 @@ export default function QuickMealScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.title}>Quick Meal</Text>
+          <Text style={styles.title}>{t.quickMeal.title}</Text>
           <Text style={styles.subtitle}>
-            Add a one-time meal without saving it as a recipe
+            {t.quickMeal.subtitle}
           </Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Search Ingredients</Text>
+          <Text style={styles.cardTitle}>{t.quickMeal.searchIngredients}</Text>
           
           <View style={styles.searchContainer}>
             <TextInput
               style={styles.searchInput}
-              placeholder="Search for food..."
+              placeholder={t.quickMeal.searchPlaceholder}
               value={searchTerm}
               onChangeText={setSearchTerm}
               placeholderTextColor="#9ca3af"
@@ -310,7 +312,7 @@ export default function QuickMealScreen() {
               {searching ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.searchButtonText}>Search</Text>
+                <Text style={styles.searchButtonText}>{t.quickMeal.search}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -321,7 +323,7 @@ export default function QuickMealScreen() {
               onPress={() => setShowFilters(!showFilters)}
             >
               <Text style={styles.filterButtonText}>
-                {showFilters ? '▼ Filters' : '▶ Filters'}
+                {showFilters ? `▼ ${t.quickMeal.filters}` : `▶ ${t.quickMeal.filters}`}
               </Text>
             </TouchableOpacity>
             
@@ -329,7 +331,7 @@ export default function QuickMealScreen() {
               style={styles.scanButton}
               onPress={openScanner}
             >
-              <Text style={styles.scanButtonText}>📷 Scan Barcode</Text>
+              <Text style={styles.scanButtonText}>{t.quickMeal.scanBarcode}</Text>
             </TouchableOpacity>
           </View>
 
@@ -337,12 +339,12 @@ export default function QuickMealScreen() {
             style={styles.customIngredientButton}
             onPress={() => setShowCustomIngredient(true)}
           >
-            <Text style={styles.customIngredientButtonText}>➕ Add Custom Ingredient</Text>
+            <Text style={styles.customIngredientButtonText}>{t.quickMeal.addCustomIngredient}</Text>
           </TouchableOpacity>
 
           {showFilters && (
             <View style={styles.filtersContainer}>
-              <Text style={styles.filterLabel}>Category</Text>
+              <Text style={styles.filterLabel}>{t.quickMeal.category}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
                 {FOOD_CATEGORIES.map((category) => (
                   <TouchableOpacity
@@ -363,7 +365,7 @@ export default function QuickMealScreen() {
                 ))}
               </ScrollView>
               
-              <Text style={styles.filterLabel}>Minimum Protein (g/100g)</Text>
+              <Text style={styles.filterLabel}>{t.quickMeal.minProtein}</Text>
               <TextInput
                 style={styles.filterInput}
                 placeholder="e.g., 10"
@@ -373,7 +375,7 @@ export default function QuickMealScreen() {
                 placeholderTextColor="#9ca3af"
               />
               
-              <Text style={styles.filterLabel}>Brand / Manufacturer</Text>
+              <Text style={styles.filterLabel}>{t.quickMeal.brand}</Text>
               <TextInput
                 style={styles.filterInput}
                 placeholder="e.g., Nestle, Danone"
@@ -386,7 +388,7 @@ export default function QuickMealScreen() {
 
           {searchResults.length > 0 && (
             <View style={styles.resultsContainer}>
-              <Text style={styles.resultsTitle}>Search Results:</Text>
+              <Text style={styles.resultsTitle}>{t.quickMeal.searchResults}</Text>
               {searchResults.map((product, index) => (
                 <TouchableOpacity
                   key={index}
@@ -413,7 +415,7 @@ export default function QuickMealScreen() {
 
           {selectedProduct && (
             <View style={styles.selectedProductContainer}>
-              <Text style={styles.selectedProductTitle}>Selected Product:</Text>
+              <Text style={styles.selectedProductTitle}>{t.quickMeal.selectedProduct}</Text>
               <Text style={styles.selectedProductName}>
                 {selectedProduct.product_name || 'Unknown Product'}
               </Text>
@@ -424,7 +426,7 @@ export default function QuickMealScreen() {
               )}
               
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Amount (grams)</Text>
+                <Text style={styles.label}>{t.quickMeal.amount}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="e.g., 100"
@@ -437,7 +439,7 @@ export default function QuickMealScreen() {
 
               {calculatedProteinForIngredient && (
                 <View style={styles.calculatedProtein}>
-                  <Text style={styles.calculatedLabel}>Protein in this amount:</Text>
+                  <Text style={styles.calculatedLabel}>{t.quickMeal.proteinInAmount}</Text>
                   <Text style={styles.calculatedValue}>
                     {calculatedProteinForIngredient}g
                   </Text>
@@ -448,7 +450,7 @@ export default function QuickMealScreen() {
                 style={styles.addIngredientButton}
                 onPress={handleAddIngredient}
               >
-                <Text style={styles.addIngredientButtonText}>Add Ingredient</Text>
+                <Text style={styles.addIngredientButtonText}>{t.quickMeal.addIngredient}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -458,7 +460,7 @@ export default function QuickMealScreen() {
                   setGramsForIngredient('');
                 }}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>{t.cancel}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -466,7 +468,7 @@ export default function QuickMealScreen() {
 
         {ingredients.length > 0 && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Meal Ingredients</Text>
+            <Text style={styles.cardTitle}>{t.quickMeal.mealIngredients}</Text>
             {ingredients.map((ingredient) => (
               <View key={ingredient.id} style={styles.ingredientItem}>
                 <View style={styles.ingredientInfo}>
@@ -489,7 +491,7 @@ export default function QuickMealScreen() {
             ))}
 
             <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>Total Meal:</Text>
+              <Text style={styles.totalLabel}>{t.quickMeal.totalMeal}</Text>
               <View>
                 <Text style={styles.totalValue}>
                   {calculateTotalProtein().toFixed(1)}g protein
@@ -504,20 +506,15 @@ export default function QuickMealScreen() {
               style={styles.logButton}
               onPress={handleLogMeal}
             >
-              <Text style={styles.logButtonText}>Log Meal for Today</Text>
+              <Text style={styles.logButtonText}>{t.quickMeal.logMealForToday}</Text>
             </TouchableOpacity>
           </View>
         )}
 
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>💡 About Quick Meal</Text>
+          <Text style={styles.infoTitle}>{t.quickMeal.aboutTitle}</Text>
           <Text style={styles.infoText}>
-            • Search for ingredients or scan barcodes{'\n'}
-            • Filter by category, brand, or minimum protein{'\n'}
-            • Add custom ingredients with your own values{'\n'}
-            • Add multiple items to build your meal{'\n'}
-            • This meal won't be saved as a recipe{'\n'}
-            • Perfect for one-time meals!
+            {t.quickMeal.aboutText}
           </Text>
         </View>
       </View>
@@ -532,7 +529,7 @@ export default function QuickMealScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add Custom Ingredient</Text>
+              <Text style={styles.modalTitle}>{t.quickMeal.customIngredientTitle}</Text>
               <TouchableOpacity onPress={() => setShowCustomIngredient(false)}>
                 <Text style={styles.modalCloseText}>✕</Text>
               </TouchableOpacity>
@@ -540,7 +537,7 @@ export default function QuickMealScreen() {
 
             <ScrollView style={styles.modalBody}>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Ingredient Name</Text>
+                <Text style={styles.label}>{t.quickMeal.ingredientName}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="e.g., Grilled Chicken"
@@ -551,7 +548,7 @@ export default function QuickMealScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Protein per 100g</Text>
+                <Text style={styles.label}>{t.quickMeal.proteinPer100g}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="e.g., 25.5"
@@ -563,7 +560,7 @@ export default function QuickMealScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Amount (grams)</Text>
+                <Text style={styles.label}>{t.quickMeal.amount}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="e.g., 150"
@@ -577,7 +574,7 @@ export default function QuickMealScreen() {
               {customIngredientProtein && customIngredientGrams && 
                parseFloat(customIngredientProtein) >= 0 && parseFloat(customIngredientGrams) > 0 && (
                 <View style={styles.calculatedProtein}>
-                  <Text style={styles.calculatedLabel}>Total Protein:</Text>
+                  <Text style={styles.calculatedLabel}>{t.quickMeal.totalProtein}</Text>
                   <Text style={styles.calculatedValue}>
                     {((parseFloat(customIngredientProtein) * parseFloat(customIngredientGrams)) / 100).toFixed(1)}g
                   </Text>
@@ -588,14 +585,14 @@ export default function QuickMealScreen() {
                 style={styles.addIngredientButton}
                 onPress={handleAddCustomIngredient}
               >
-                <Text style={styles.addIngredientButtonText}>Add Ingredient</Text>
+                <Text style={styles.addIngredientButtonText}>{t.quickMeal.addIngredient}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={() => setShowCustomIngredient(false)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>{t.cancel}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -611,12 +608,12 @@ export default function QuickMealScreen() {
         <View style={styles.scannerContainer}>
           {hasPermission === false ? (
             <View style={styles.permissionDenied}>
-              <Text style={styles.permissionText}>Camera permission is required</Text>
+              <Text style={styles.permissionText}>{t.quickMeal.cameraPermissionRequired}</Text>
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setShowScanner(false)}
               >
-                <Text style={styles.closeButtonText}>Close</Text>
+                <Text style={styles.closeButtonText}>{t.close}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -630,7 +627,7 @@ export default function QuickMealScreen() {
               >
                 <View style={styles.scannerOverlay}>
                   <View style={styles.scannerHeader}>
-                    <Text style={styles.scannerTitle}>Scan Product Barcode</Text>
+                    <Text style={styles.scannerTitle}>{t.quickMeal.scanTitle}</Text>
                     <TouchableOpacity
                       style={styles.closeScannerButton}
                       onPress={() => setShowScanner(false)}
@@ -652,7 +649,7 @@ export default function QuickMealScreen() {
                     {scanLoading && (
                       <View style={styles.scanLoadingContainer}>
                         <ActivityIndicator size="large" color="#3b82f6" />
-                        <Text style={styles.scanLoadingText}>Fetching product info...</Text>
+                        <Text style={styles.scanLoadingText}>{t.quickMeal.fetchingProduct}</Text>
                       </View>
                     )}
                     {scanned && !scanLoading && (
@@ -660,7 +657,7 @@ export default function QuickMealScreen() {
                         style={styles.scanAgainButton}
                         onPress={() => setScanned(false)}
                       >
-                        <Text style={styles.scanAgainText}>Tap to Scan Again</Text>
+                        <Text style={styles.scanAgainText}>{t.quickMeal.tapToScanAgain}</Text>
                       </TouchableOpacity>
                     )}
                   </View>

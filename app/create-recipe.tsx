@@ -1,6 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, FlatList, Modal } from 'react-native';
 import { useState, useMemo } from 'react';
 import { useProteinStore } from '../store/proteinStore';
+import { useLanguageStore } from '../store/languageStore';
 import { searchProducts, OpenFoodFactsProduct, fetchProductByBarcode, ProductSearchFilters } from '../utils/api';
 import { RecipeIngredient } from '../types';
 import { useRouter } from 'expo-router';
@@ -10,20 +11,21 @@ import { CameraView, Camera } from 'expo-camera';
 const SEARCH_PAGE_SIZE = 10;
 const SEARCH_PAGE_NUMBER = 1;
 
-// Common food categories
-const FOOD_CATEGORIES = [
-  { label: 'All', value: '' },
-  { label: 'Meats', value: 'meats' },
-  { label: 'Dairy', value: 'dairies' },
-  { label: 'Fish', value: 'fish' },
-  { label: 'Vegetables', value: 'vegetables' },
-  { label: 'Fruits', value: 'fruits' },
-  { label: 'Grains', value: 'cereals-and-potatoes' },
-  { label: 'Legumes', value: 'legumes' },
-];
-
 export default function CreateRecipeScreen() {
   const router = useRouter();
+  const t = useLanguageStore((state) => state.translations);
+  
+  // Common food categories - now using translations
+  const FOOD_CATEGORIES = [
+    { label: t.categories.all, value: '' },
+    { label: t.categories.meats, value: 'meats' },
+    { label: t.categories.dairy, value: 'dairies' },
+    { label: t.categories.fish, value: 'fish' },
+    { label: t.categories.vegetables, value: 'vegetables' },
+    { label: t.categories.fruits, value: 'fruits' },
+    { label: t.categories.grains, value: 'cereals-and-potatoes' },
+    { label: t.categories.legumes, value: 'legumes' },
+  ];
   
   const [recipeName, setRecipeName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -109,13 +111,13 @@ export default function CreateRecipeScreen() {
       setShowScanner(true);
       setScanned(false);
     } else {
-      Alert.alert('Permission Required', 'Camera permission is required to scan barcodes.');
+      Alert.alert('Permission Required', t.quickMeal.cameraPermissionRequired);
     }
   };
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
-      Alert.alert('Error', 'Please enter a search term');
+      Alert.alert(t.error, 'Please enter a search term');
       return;
     }
 
@@ -138,10 +140,10 @@ export default function CreateRecipeScreen() {
       const results = await searchProducts(searchTerm, SEARCH_PAGE_NUMBER, SEARCH_PAGE_SIZE, filters);
       setSearchResults(results);
       if (results.length === 0) {
-        Alert.alert('No Results', 'No products found matching your criteria');
+        Alert.alert('No Results', t.quickMeal.noResults);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to search for products');
+      Alert.alert(t.error, 'Failed to search for products');
     } finally {
       setSearching(false);
     }
@@ -155,17 +157,17 @@ export default function CreateRecipeScreen() {
 
   const handleAddIngredient = () => {
     if (!selectedProduct) {
-      Alert.alert('Error', 'No product selected');
+      Alert.alert(t.error, t.createRecipe.errorNoName);
       return;
     }
 
     if (!selectedProduct.nutriments?.proteins_100g) {
-      Alert.alert('Error', 'This product does not have protein information');
+      Alert.alert(t.error, t.quickMeal.errorNoProtein);
       return;
     }
 
     if (!gramsForIngredient || parseFloat(gramsForIngredient) <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount in grams');
+      Alert.alert(t.error, t.quickMeal.errorInvalidAmount);
       return;
     }
 
@@ -184,7 +186,7 @@ export default function CreateRecipeScreen() {
     setIngredients([...ingredients, newIngredient]);
     setSelectedProduct(null);
     setGramsForIngredient('');
-    Alert.alert('Success', 'Ingredient added to recipe');
+    Alert.alert(t.success, t.createRecipe.ingredientAdded);
   };
 
   const handleRemoveIngredient = (id: string) => {
@@ -193,17 +195,17 @@ export default function CreateRecipeScreen() {
 
   const handleAddCustomIngredient = () => {
     if (!customIngredientName.trim()) {
-      Alert.alert('Error', 'Please enter an ingredient name');
+      Alert.alert(t.error, 'Please enter an ingredient name');
       return;
     }
 
     if (!customIngredientProtein || parseFloat(customIngredientProtein) < 0) {
-      Alert.alert('Error', 'Please enter a valid protein amount (g/100g)');
+      Alert.alert(t.error, 'Please enter a valid protein amount (g/100g)');
       return;
     }
 
     if (!customIngredientGrams || parseFloat(customIngredientGrams) <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount in grams');
+      Alert.alert(t.error, t.quickMeal.errorInvalidAmount);
       return;
     }
 
@@ -224,7 +226,7 @@ export default function CreateRecipeScreen() {
     setCustomIngredientProtein('');
     setCustomIngredientGrams('');
     setShowCustomIngredient(false);
-    Alert.alert('Success', 'Custom ingredient added to recipe');
+    Alert.alert(t.success, t.createRecipe.ingredientAdded);
   };
 
   const calculateTotalProtein = () => {
@@ -237,12 +239,12 @@ export default function CreateRecipeScreen() {
 
   const handleSaveRecipe = () => {
     if (!recipeName.trim()) {
-      Alert.alert('Error', 'Please enter a recipe name');
+      Alert.alert(t.error, t.createRecipe.errorNoName);
       return;
     }
 
     if (ingredients.length === 0) {
-      Alert.alert('Error', 'Please add at least one ingredient');
+      Alert.alert(t.error, t.createRecipe.errorNoIngredients);
       return;
     }
 
@@ -253,7 +255,7 @@ export default function CreateRecipeScreen() {
       totalGrams: calculateTotalGrams(),
     });
 
-    Alert.alert('Success', 'Recipe saved successfully!', [
+    Alert.alert(t.success, t.createRecipe.recipeSaved, [
       {
         text: 'OK',
         onPress: () => {
@@ -269,13 +271,13 @@ export default function CreateRecipeScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.title}>Create New Recipe</Text>
+          <Text style={styles.title}>{t.createRecipe.title}</Text>
           
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Recipe Name</Text>
+            <Text style={styles.label}>{t.createRecipe.recipeName}</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g., Protein Sandwich"
+              placeholder={t.createRecipe.recipeNamePlaceholder}
               value={recipeName}
               onChangeText={setRecipeName}
               placeholderTextColor="#9ca3af"
@@ -284,12 +286,12 @@ export default function CreateRecipeScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Search Ingredients</Text>
+          <Text style={styles.cardTitle}>{t.createRecipe.searchIngredients}</Text>
           
           <View style={styles.searchContainer}>
             <TextInput
               style={styles.searchInput}
-              placeholder="Search for food..."
+              placeholder={t.createRecipe.searchPlaceholder}
               value={searchTerm}
               onChangeText={setSearchTerm}
               placeholderTextColor="#9ca3af"
@@ -303,7 +305,7 @@ export default function CreateRecipeScreen() {
               {searching ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.searchButtonText}>Search</Text>
+                <Text style={styles.searchButtonText}>{t.createRecipe.search}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -322,7 +324,7 @@ export default function CreateRecipeScreen() {
               style={styles.scanButton}
               onPress={openScanner}
             >
-              <Text style={styles.scanButtonText}>📷 Scan Barcode</Text>
+              <Text style={styles.scanButtonText}>{t.createRecipe.scanBarcode}</Text>
             </TouchableOpacity>
           </View>
 
@@ -330,12 +332,12 @@ export default function CreateRecipeScreen() {
             style={styles.customIngredientButton}
             onPress={() => setShowCustomIngredient(true)}
           >
-            <Text style={styles.customIngredientButtonText}>➕ Add Custom Ingredient</Text>
+            <Text style={styles.customIngredientButtonText}>{t.createRecipe.addCustomIngredient}</Text>
           </TouchableOpacity>
 
           {showFilters && (
             <View style={styles.filtersContainer}>
-              <Text style={styles.filterLabel}>Category</Text>
+              <Text style={styles.filterLabel}>{t.createRecipe.category}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
                 {FOOD_CATEGORIES.map((category) => (
                   <TouchableOpacity
@@ -356,7 +358,7 @@ export default function CreateRecipeScreen() {
                 ))}
               </ScrollView>
               
-              <Text style={styles.filterLabel}>Minimum Protein (g/100g)</Text>
+              <Text style={styles.filterLabel}>{t.createRecipe.minProtein}</Text>
               <TextInput
                 style={styles.filterInput}
                 placeholder="e.g., 10"
@@ -366,7 +368,7 @@ export default function CreateRecipeScreen() {
                 placeholderTextColor="#9ca3af"
               />
               
-              <Text style={styles.filterLabel}>Brand / Manufacturer</Text>
+              <Text style={styles.filterLabel}>{t.createRecipe.brand}</Text>
               <TextInput
                 style={styles.filterInput}
                 placeholder="e.g., Nestle, Danone"
@@ -379,7 +381,7 @@ export default function CreateRecipeScreen() {
 
           {searchResults.length > 0 && (
             <View style={styles.resultsContainer}>
-              <Text style={styles.resultsTitle}>Search Results:</Text>
+              <Text style={styles.resultsTitle}>{t.createRecipe.searchResults}</Text>
               {searchResults.map((product, index) => (
                 <TouchableOpacity
                   key={index}
@@ -406,7 +408,7 @@ export default function CreateRecipeScreen() {
 
           {selectedProduct && (
             <View style={styles.selectedProductContainer}>
-              <Text style={styles.selectedProductTitle}>Selected Product:</Text>
+              <Text style={styles.selectedProductTitle}>{t.createRecipe.selectedProduct}</Text>
               <Text style={styles.selectedProductName}>
                 {selectedProduct.product_name || 'Unknown Product'}
               </Text>
@@ -417,7 +419,7 @@ export default function CreateRecipeScreen() {
               )}
               
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Amount (grams)</Text>
+                <Text style={styles.label}>{t.createRecipe.amount}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="e.g., 100"
@@ -430,7 +432,7 @@ export default function CreateRecipeScreen() {
 
               {calculatedProteinForIngredient && (
                 <View style={styles.calculatedProtein}>
-                  <Text style={styles.calculatedLabel}>Protein in this amount:</Text>
+                  <Text style={styles.calculatedLabel}>{t.createRecipe.proteinInAmount}</Text>
                   <Text style={styles.calculatedValue}>
                     {calculatedProteinForIngredient}g
                   </Text>
@@ -441,7 +443,7 @@ export default function CreateRecipeScreen() {
                 style={styles.addIngredientButton}
                 onPress={handleAddIngredient}
               >
-                <Text style={styles.addIngredientButtonText}>Add to Recipe</Text>
+                <Text style={styles.addIngredientButtonText}>{t.createRecipe.addToRecipe}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -451,7 +453,7 @@ export default function CreateRecipeScreen() {
                   setGramsForIngredient('');
                 }}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>{t.cancel}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -459,7 +461,7 @@ export default function CreateRecipeScreen() {
 
         {ingredients.length > 0 && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Recipe Ingredients</Text>
+            <Text style={styles.cardTitle}>{t.createRecipe.recipeIngredients}</Text>
             {ingredients.map((ingredient) => (
               <View key={ingredient.id} style={styles.ingredientItem}>
                 <View style={styles.ingredientInfo}>
@@ -482,7 +484,7 @@ export default function CreateRecipeScreen() {
             ))}
 
             <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>Total Recipe:</Text>
+              <Text style={styles.totalLabel}>{t.createRecipe.totalRecipe}</Text>
               <View>
                 <Text style={styles.totalValue}>
                   {calculateTotalProtein().toFixed(1)}g protein
@@ -497,20 +499,15 @@ export default function CreateRecipeScreen() {
               style={styles.saveButton}
               onPress={handleSaveRecipe}
             >
-              <Text style={styles.saveButtonText}>Save Recipe</Text>
+              <Text style={styles.saveButtonText}>{t.createRecipe.saveRecipe}</Text>
             </TouchableOpacity>
           </View>
         )}
 
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>💡 Tips</Text>
+          <Text style={styles.infoTitle}>{t.createRecipe.tips}</Text>
           <Text style={styles.infoText}>
-            • Search for ingredients by name{'\n'}
-            • Use filters to narrow down results (category, brand, protein){'\n'}
-            • Scan barcodes to quickly add packaged foods{'\n'}
-            • Add custom ingredients with your own protein values{'\n'}
-            • Add multiple ingredients to build your recipe{'\n'}
-            • Once saved, you can quickly log the recipe as a meal
+            {t.createRecipe.tipsText}
           </Text>
         </View>
       </View>
@@ -525,7 +522,7 @@ export default function CreateRecipeScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add Custom Ingredient</Text>
+              <Text style={styles.modalTitle}>{t.createRecipe.customIngredientTitle}</Text>
               <TouchableOpacity onPress={() => setShowCustomIngredient(false)}>
                 <Text style={styles.modalCloseText}>✕</Text>
               </TouchableOpacity>
@@ -533,7 +530,7 @@ export default function CreateRecipeScreen() {
 
             <ScrollView style={styles.modalBody}>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Ingredient Name</Text>
+                <Text style={styles.label}>{t.createRecipe.ingredientName}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="e.g., Grilled Chicken"
@@ -544,7 +541,7 @@ export default function CreateRecipeScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Protein per 100g</Text>
+                <Text style={styles.label}>{t.createRecipe.proteinPer100g}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="e.g., 25.5"
@@ -556,7 +553,7 @@ export default function CreateRecipeScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Amount (grams)</Text>
+                <Text style={styles.label}>{t.createRecipe.amount}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="e.g., 150"
@@ -570,7 +567,7 @@ export default function CreateRecipeScreen() {
               {customIngredientProtein && customIngredientGrams && 
                parseFloat(customIngredientProtein) >= 0 && parseFloat(customIngredientGrams) > 0 && (
                 <View style={styles.calculatedProtein}>
-                  <Text style={styles.calculatedLabel}>Total Protein:</Text>
+                  <Text style={styles.calculatedLabel}>{t.createRecipe.totalProtein}</Text>
                   <Text style={styles.calculatedValue}>
                     {((parseFloat(customIngredientProtein) * parseFloat(customIngredientGrams)) / 100).toFixed(1)}g
                   </Text>
@@ -581,14 +578,14 @@ export default function CreateRecipeScreen() {
                 style={styles.addIngredientButton}
                 onPress={handleAddCustomIngredient}
               >
-                <Text style={styles.addIngredientButtonText}>Add to Recipe</Text>
+                <Text style={styles.addIngredientButtonText}>{t.createRecipe.addToRecipe}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={() => setShowCustomIngredient(false)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>{t.cancel}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -604,12 +601,12 @@ export default function CreateRecipeScreen() {
         <View style={styles.scannerContainer}>
           {hasPermission === false ? (
             <View style={styles.permissionDenied}>
-              <Text style={styles.permissionText}>Camera permission is required</Text>
+              <Text style={styles.permissionText}>{t.quickMeal.cameraPermissionRequired}</Text>
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setShowScanner(false)}
               >
-                <Text style={styles.closeButtonText}>Close</Text>
+                <Text style={styles.closeButtonText}>{t.close}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -623,7 +620,7 @@ export default function CreateRecipeScreen() {
               >
                 <View style={styles.scannerOverlay}>
                   <View style={styles.scannerHeader}>
-                    <Text style={styles.scannerTitle}>Scan Product Barcode</Text>
+                    <Text style={styles.scannerTitle}>{t.quickMeal.scanTitle}</Text>
                     <TouchableOpacity
                       style={styles.closeScannerButton}
                       onPress={() => setShowScanner(false)}
@@ -645,7 +642,7 @@ export default function CreateRecipeScreen() {
                     {scanLoading && (
                       <View style={styles.scanLoadingContainer}>
                         <ActivityIndicator size="large" color="#3b82f6" />
-                        <Text style={styles.scanLoadingText}>Fetching product info...</Text>
+                        <Text style={styles.scanLoadingText}>{t.quickMeal.fetchingProduct}</Text>
                       </View>
                     )}
                     {scanned && !scanLoading && (
@@ -653,7 +650,7 @@ export default function CreateRecipeScreen() {
                         style={styles.scanAgainButton}
                         onPress={() => setScanned(false)}
                       >
-                        <Text style={styles.scanAgainText}>Tap to Scan Again</Text>
+                        <Text style={styles.scanAgainText}>{t.quickMeal.tapToScanAgain}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
