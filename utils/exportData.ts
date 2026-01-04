@@ -118,7 +118,7 @@ export async function exportAsCSV(data: ExportData): Promise<void> {
     const fileName = `protein_tracker_export_${new Date().toISOString().split('T')[0]}.csv`;
     const file = new File(Paths.cache, fileName);
     
-    await file.write(csv);
+    file.write(csv);
     
     // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync();
