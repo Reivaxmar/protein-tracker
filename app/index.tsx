@@ -84,7 +84,14 @@ export default function HomeScreen() {
             todayData.meals.map((meal) => (
               <View key={meal.id} style={styles.mealItem}>
                 <View style={styles.mealInfo}>
-                  <Text style={styles.mealName}>{meal.name}</Text>
+                  <View style={styles.mealNameRow}>
+                    <Text style={styles.mealName}>{meal.name}</Text>
+                    {meal.tag && (
+                      <View style={styles.mealTag}>
+                        <Text style={styles.mealTagText}>{meal.tag}</Text>
+                      </View>
+                    )}
+                  </View>
                   <Text style={styles.mealDetails}>
                     {meal.gramsEaten}g ({meal.proteinPer100g}{t.home.proteinPer100g})
                   </Text>
@@ -203,11 +210,29 @@ const styles = StyleSheet.create({
   mealInfo: {
     flex: 1,
   },
+  mealNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 4,
+  },
   mealName: {
     fontSize: 16,
     fontWeight: '500',
     color: '#1f2937',
-    marginBottom: 4,
+  },
+  mealTag: {
+    backgroundColor: '#dbeafe',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  mealTagText: {
+    fontSize: 11,
+    color: '#3b82f6',
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   mealDetails: {
     fontSize: 12,

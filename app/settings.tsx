@@ -2,6 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert 
 import { useState } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
+import { useTagStore, DEFAULT_TAGS } from '../store/tagStore';
 import { Language } from '../translations';
 
 export default function SettingsScreen() {
@@ -10,7 +11,11 @@ export default function SettingsScreen() {
   const language = useLanguageStore((state) => state.language);
   const setLanguage = useLanguageStore((state) => state.setLanguage);
   const t = useLanguageStore((state) => state.translations);
+  const tags = useTagStore((state) => state.tags);
+  const addTag = useTagStore((state) => state.addTag);
+  const removeTag = useTagStore((state) => state.removeTag);
   const [inputValue, setInputValue] = useState(targetProtein.toString());
+  const [newTagValue, setNewTagValue] = useState('');
 
   const handleSave = () => {
     const newTarget = parseFloat(inputValue);
@@ -24,6 +29,43 @@ export default function SettingsScreen() {
 
   const handleLanguageChange = (newLanguage: Language) => {
     setLanguage(newLanguage);
+  };
+
+  const handleAddTag = () => {
+    const trimmedTag = newTagValue.trim();
+    if (!trimmedTag) {
+      Alert.alert(t.error, 'Please enter a tag name');
+      return;
+    }
+    if (tags.some(t => t.toLowerCase() === trimmedTag.toLowerCase())) {
+      Alert.alert(t.error, 'This tag already exists');
+      return;
+    }
+    addTag(trimmedTag);
+    setNewTagValue('');
+    Alert.alert(t.success, 'Tag added successfully');
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    if (DEFAULT_TAGS.includes(tag.toLowerCase())) {
+      Alert.alert(t.error, 'Cannot remove default tags');
+      return;
+    }
+    Alert.alert(
+      'Remove Tag',
+      `Are you sure you want to remove the "${tag}" tag?`,
+      [
+        { text: t.cancel, style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => {
+            removeTag(tag);
+            Alert.alert(t.success, 'Tag removed successfully');
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -94,6 +136,49 @@ export default function SettingsScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.title}>Meal Tags</Text>
+          
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Current Tags</Text>
+            <View style={styles.tagsContainer}>
+              {tags.map((tag) => (
+                <View key={tag} style={styles.tagItem}>
+                  <Text style={styles.tagName}>{tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase()}</Text>
+                  <TouchableOpacity
+                    onPress={() => handleRemoveTag(tag)}
+                    style={styles.removeTagButton}
+                  >
+                    <Text style={styles.removeTagText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Add New Tag</Text>
+            <View style={styles.addTagContainer}>
+              <TextInput
+                style={styles.addTagInput}
+                placeholder="e.g., snack, dessert"
+                value={newTagValue}
+                onChangeText={setNewTagValue}
+                placeholderTextColor="#9ca3af"
+              />
+              <TouchableOpacity
+                style={styles.addTagButton}
+                onPress={handleAddTag}
+              >
+                <Text style={styles.addTagButtonText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.hint}>
+              Create custom tags to categorize your meals. Default tags (breakfast, lunch, dinner) cannot be removed.
+            </Text>
           </View>
         </View>
 
@@ -221,5 +306,63 @@ const styles = StyleSheet.create({
   },
   languageButtonTextActive: {
     color: '#3b82f6',
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 8,
+  },
+  tagItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#3b82f6',
+    borderRadius: 20,
+    paddingLeft: 16,
+    paddingRight: 8,
+    paddingVertical: 8,
+  },
+  tagName: {
+    fontSize: 14,
+    color: '#3b82f6',
+    fontWeight: '500',
+    marginRight: 8,
+  },
+  removeTagButton: {
+    padding: 4,
+  },
+  removeTagText: {
+    fontSize: 14,
+    color: '#ef4444',
+    fontWeight: 'bold',
+  },
+  addTagContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  addTagInput: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#1f2937',
+  },
+  addTagButton: {
+    backgroundColor: '#10b981',
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addTagButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

@@ -3,16 +3,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
+import { useTagStore } from '../store/tagStore';
 import * as Updates from 'expo-updates';
 
 export default function RootLayout() {
   const loadData = useProteinStore((state) => state.loadData);
   const loadLanguage = useLanguageStore((state) => state.loadLanguage);
+  const loadTags = useTagStore((state) => state.loadTags);
   const translations = useLanguageStore((state) => state.translations);
 
   useEffect(() => {
     loadData();
     loadLanguage();
+    loadTags();
     
     // Check for OTA updates on app launch
     async function checkForUpdates() {
