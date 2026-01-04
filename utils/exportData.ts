@@ -104,6 +104,16 @@ export function arrayToCSV(data: any[]): string {
 }
 
 /**
+ * Generate a safe filename for export with timestamp
+ */
+function generateExportFileName(extension: 'csv' | 'xlsx'): string {
+  const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+  // Sanitize to ensure only valid filename characters
+  const safeDate = date.replace(/[^0-9-]/g, '');
+  return `protein_tracker_export_${safeDate}.${extension}`;
+}
+
+/**
  * Export data as CSV file
  */
 export async function exportAsCSV(data: ExportData): Promise<void> {
@@ -115,7 +125,7 @@ export async function exportAsCSV(data: ExportData): Promise<void> {
     }
     
     const csv = arrayToCSV(formattedData);
-    const fileName = `protein_tracker_export_${new Date().toISOString().split('T')[0]}.csv`;
+    const fileName = generateExportFileName('csv');
     const fileUri = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + fileName;
     
     await FileSystem.writeAsStringAsync(fileUri, csv, {
@@ -169,7 +179,7 @@ export async function exportAsXLSX(data: ExportData): Promise<void> {
     // Write the workbook to base64
     const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
     
-    const fileName = `protein_tracker_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+    const fileName = generateExportFileName('xlsx');
     const fileUri = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + fileName;
     
     await FileSystem.writeAsStringAsync(fileUri, wbout, {
