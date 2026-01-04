@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, Tex
 import { useState } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
+import { useTagStore } from '../store/tagStore';
 import { Recipe } from '../types';
 import { useRouter } from 'expo-router';
 
@@ -10,12 +11,14 @@ export default function RecipesScreen() {
   const deleteRecipe = useProteinStore((state) => state.deleteRecipe);
   const addMealFromRecipe = useProteinStore((state) => state.addMealFromRecipe);
   const t = useLanguageStore((state) => state.translations);
+  const tags = useTagStore((state) => state.tags);
   const router = useRouter();
   const [expandedRecipe, setExpandedRecipe] = useState<string | null>(null);
   const [promptVisible, setPromptVisible] = useState(false);
   const [promptValue, setPromptValue] = useState('1');
   const [promptRecipe, setPromptRecipe] = useState<Recipe | null>(null);
   const [promptMode, setPromptMode] = useState<'servings' | 'grams'>('servings');
+  const [selectedTag, setSelectedTag] = useState<string>('');
 
   const handleDeleteRecipe = (recipeId: string, recipeName: string) => {
     Alert.alert(
@@ -42,6 +45,7 @@ export default function RecipesScreen() {
     setPromptRecipe(recipe);
     setPromptValue('1');
     setPromptMode('servings');
+    setSelectedTag('');
     setPromptVisible(true);
   };
 
@@ -56,7 +60,7 @@ export default function RecipesScreen() {
       }
       
       setPromptVisible(false);
-      addMealFromRecipe(recipe.id, servingCount);
+      addMealFromRecipe(recipe.id, servingCount, false, selectedTag || undefined);
       Alert.alert(
         t.success,
         `${t.recipes.addedRecipe} ${servingCount} ${servingCount > 1 ? t.recipes.servings : t.recipes.serving} of ${recipe.name} (${(recipe.totalProtein * servingCount).toFixed(1)}g protein)`,
@@ -78,7 +82,7 @@ export default function RecipesScreen() {
       }
       
       setPromptVisible(false);
-      addMealFromRecipe(recipe.id, gramsAmount, true);
+      addMealFromRecipe(recipe.id, gramsAmount, true, selectedTag || undefined);
       const proteinPer100g = recipe.totalGrams > 0 ? (recipe.totalProtein / recipe.totalGrams) * 100 : 0;
       const proteinAmount = (proteinPer100g * gramsAmount) / 100;
       Alert.alert(
@@ -151,6 +155,44 @@ export default function RecipesScreen() {
               style={styles.modalInput}
               autoFocus
             />
+            
+            <View style={styles.tagSection}>
+              <Text style={styles.tagLabel}>Meal Tag (Optional)</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
+                <TouchableOpacity
+                  style={[
+                    styles.tagChip,
+                    !selectedTag && styles.tagChipActive
+                  ]}
+                  onPress={() => setSelectedTag('')}
+                >
+                  <Text style={[
+                    styles.tagChipText,
+                    !selectedTag && styles.tagChipTextActive
+                  ]}>
+                    None
+                  </Text>
+                </TouchableOpacity>
+                {tags.map((tag) => (
+                  <TouchableOpacity
+                    key={tag}
+                    style={[
+                      styles.tagChip,
+                      selectedTag === tag && styles.tagChipActive
+                    ]}
+                    onPress={() => setSelectedTag(tag)}
+                  >
+                    <Text style={[
+                      styles.tagChipText,
+                      selectedTag === tag && styles.tagChipTextActive
+                    ]}>
+                      {tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase()}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+            
             <View style={styles.modalButtons}>
               <Button
                 title={t.cancel}
@@ -495,5 +537,40 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  tagSection: {
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  tagLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  tagScroll: {
+    flexDirection: 'row',
+  },
+  tagChip: {
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
+  },
+  tagChipActive: {
+    backgroundColor: '#3b82f6',
+    borderColor: '#3b82f6',
+  },
+  tagChipText: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  tagChipTextActive: {
+    color: '#ffffff',
+    fontWeight: '600',
   },
 });

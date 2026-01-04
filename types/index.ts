@@ -44,7 +44,7 @@ export interface AppState {
   getTodayData: () => DailyProteinData;
   addRecipe: (recipe: Omit<Recipe, 'id' | 'createdAt'>) => void;
   deleteRecipe: (recipeId: string) => void;
-  addMealFromRecipe: (recipeId: string, servingsOrGrams: number, useGrams?: boolean) => void;
+  addMealFromRecipe: (recipeId: string, servingsOrGrams: number, useGrams?: boolean, tag?: string) => void;
   loadData: () => Promise<void>;
   saveData: () => Promise<void>;
 }

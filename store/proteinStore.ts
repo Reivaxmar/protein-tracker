@@ -87,7 +87,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
     get().saveData();
   },
 
-  addMealFromRecipe: (recipeId, servingsOrGrams: number = 1, useGrams: boolean = false) => {
+  addMealFromRecipe: (recipeId, servingsOrGrams: number = 1, useGrams: boolean = false, tag?: string) => {
     const state = get();
     const recipe = state.recipes.find((r) => r.id === recipeId);
     
@@ -120,6 +120,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
       proteinPer100g,
       gramsEaten: totalGrams,
       date: getTodayDateString(),
+      tag: tag || undefined,
     });
   },
 
