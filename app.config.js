@@ -17,7 +17,7 @@ export default {
       supportsTablet: true
     },
     android: {
-      package: "com.anonymous.proteintracker",
+      package: "com.reivaxmar.proteintracker",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
@@ -44,6 +44,9 @@ export default {
     extra: {
       router: {
         basePath: "/protein-tracker" // <--- critical: must match repo name
+      },
+      eas: {
+        "projectId": "52c0a270-31b4-4918-a2a1-3ca5449fcf41"
       }
     },
     runtimeVersion: {
@@ -52,7 +55,7 @@ export default {
     updates: {
       // Note: Replace YOUR_PROJECT_ID with your actual Expo project ID
       // Or remove this field entirely - EAS will auto-configure it during build
-      url: "https://u.expo.dev/YOUR_PROJECT_ID"
+      url: "https://u.expo.dev/52c0a270-31b4-4918-a2a1-3ca5449fcf41"
     }
   }
 };

@@ -1,6 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, PanResponder, Animated } from 'react-native';
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useProteinStore } from '../store/proteinStore';
+import { useLanguageStore } from '../store/languageStore';
 import { generateUniqueId, getTodayDateString } from '../utils/helpers';
 
 interface CalculatorIngredient {
@@ -10,6 +11,7 @@ interface CalculatorIngredient {
 }
 
 export default function CalculateAmountsScreen() {
+  const t = useLanguageStore((state) => state.translations);
   const [ingredients, setIngredients] = useState<CalculatorIngredient[]>([]);
   const [sliderPoints, setSliderPoints] = useState<number[]>([]); // Positions from 0 to 100
   const [targetProteinAmount, setTargetProteinAmount] = useState('50'); // Default to 50g
@@ -91,13 +93,13 @@ export default function CalculateAmountsScreen() {
 
   const handleAddIngredient = () => {
     if (!newIngredientName.trim()) {
-      Alert.alert('Error', 'Please enter an ingredient name');
+      Alert.alert(t.error, 'Please enter an ingredient name');
       return;
     }
 
     const proteinValue = parseFloat(newIngredientProtein);
     if (isNaN(proteinValue) || proteinValue < 0) {
-      Alert.alert('Error', 'Please enter a valid protein amount (g/100g)');
+      Alert.alert(t.error, 'Please enter a valid protein amount (g/100g)');
       return;
     }
 
@@ -123,7 +125,7 @@ export default function CalculateAmountsScreen() {
     setNewIngredientName('');
     setNewIngredientProtein('');
     setShowAddIngredient(false);
-    Alert.alert('Success', 'Ingredient added');
+    Alert.alert(t.success, t.calculator.ingredientAdded);
   };
 
   const handleRemoveIngredient = (id: string) => {
@@ -212,24 +214,22 @@ export default function CalculateAmountsScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.title}>Protein Calculator</Text>
-          <Text style={styles.subtitle}>
-            Set a protein target and ingredient ratios to calculate exact amounts needed
-          </Text>
+          <Text style={styles.title}>{t.calculator.title}</Text>
+          <Text style={styles.subtitle}>{t.calculator.subtitle}</Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Target Protein</Text>
+          <Text style={styles.cardTitle}>{t.calculator.targetProtein}</Text>
           
           <View style={styles.infoBox}>
-            <Text style={styles.infoLabel}>Your Status:</Text>
+            <Text style={styles.infoLabel}>{t.calculator.yourStatus}</Text>
             <Text style={styles.infoText}>
-              Daily Limit: {targetProtein}g • Consumed: {totalProteinToday.toFixed(1)}g • Remaining: {Math.max(0, targetProtein - totalProteinToday).toFixed(1)}g
+              {t.calculator.dailyLimit} {targetProtein}g • {t.calculator.consumed} {totalProteinToday.toFixed(1)}g • {t.calculator.remaining} {Math.max(0, targetProtein - totalProteinToday).toFixed(1)}g
             </Text>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Protein Amount (g)</Text>
+            <Text style={styles.label}>{t.calculator.proteinAmount}</Text>
             <TextInput
               style={styles.input}
               placeholder="e.g., 50"
@@ -238,22 +238,18 @@ export default function CalculateAmountsScreen() {
               keyboardType="decimal-pad"
               placeholderTextColor="#9ca3af"
             />
-            <Text style={styles.hint}>
-              Amount of protein you want to consume
-            </Text>
+            <Text style={styles.hint}>{t.calculator.hint}</Text>
           </View>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Ingredients & Ratios</Text>
+          <Text style={styles.cardTitle}>{t.calculator.ingredientsRatios}</Text>
           
           {ingredients.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>🥗</Text>
-              <Text style={styles.emptyText}>No ingredients added yet</Text>
-              <Text style={styles.emptyHint}>
-                Add ingredients and use the slider to set ratios
-              </Text>
+              <Text style={styles.emptyText}>{t.calculator.noIngredientsYet}</Text>
+              <Text style={styles.emptyHint}>{t.calculator.noIngredientsHint}</Text>
             </View>
           ) : (
             <View>
@@ -285,10 +281,8 @@ export default function CalculateAmountsScreen() {
               {/* Visual slider for ratios (only if 2+ ingredients) */}
               {ingredients.length > 1 && (
                 <View style={styles.sliderContainer}>
-                  <Text style={styles.sliderTitle}>Adjust Grams Ratios</Text>
-                  <Text style={styles.sliderHint}>
-                    Drag the points to adjust the proportion of grams for each ingredient
-                  </Text>
+                  <Text style={styles.sliderTitle}>{t.calculator.adjustGramsRatios}</Text>
+                    <Text style={styles.sliderHint}>{t.calculator.adjustHint}</Text>
                   
                   <View 
                     style={styles.sliderWrapper}
@@ -348,13 +342,13 @@ export default function CalculateAmountsScreen() {
             style={styles.addButton}
             onPress={() => setShowAddIngredient(true)}
           >
-            <Text style={styles.addButtonText}>+ Add Ingredient</Text>
+            <Text style={styles.addButtonText}>{t.calculator.addIngredient}</Text>
           </TouchableOpacity>
         </View>
 
         {calculatedAmounts.length > 0 && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Calculated Amounts</Text>
+            <Text style={styles.cardTitle}>{t.calculator.calculatedAmounts}</Text>
             
             <View style={styles.resultsContainer}>
               {calculatedAmounts.map((item) => (
@@ -377,11 +371,11 @@ export default function CalculateAmountsScreen() {
 
             <View style={styles.totalSummary}>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Total Grams:</Text>
+                <Text style={styles.summaryLabel}>{t.calculator.totalGrams}</Text>
                 <Text style={styles.summaryValue}>{totalGramsCheck.toFixed(1)}g</Text>
               </View>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Total Protein:</Text>
+                <Text style={styles.summaryLabel}>{t.calculator.totalProtein}</Text>
                 <Text style={styles.summaryValueProtein}>{totalProteinCheck.toFixed(1)}g</Text>
               </View>
             </View>
@@ -389,15 +383,9 @@ export default function CalculateAmountsScreen() {
         )}
 
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>💡 How to Use</Text>
+          <Text style={styles.infoTitle}>{t.calculator.howToUse}</Text>
           <Text style={styles.infoCardText}>
-            1. Set your target protein amount (defaults to remaining for today){'\n'}
-            2. Add ingredients with their protein content per 100g{'\n'}
-            3. Use the visual slider to adjust the grams ratio of each ingredient{'\n'}
-            4. Drag the points on the slider to change grams proportions{'\n'}
-            5. See calculated amounts needed of each ingredient{'\n'}
-            {'\n'}
-            The slider divides ingredients by grams percentage - drag points to adjust!
+            {t.calculator.howToUseText}
           </Text>
         </View>
       </View>
@@ -412,7 +400,7 @@ export default function CalculateAmountsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add Ingredient</Text>
+              <Text style={styles.modalTitle}>{t.calculator.addIngredient}</Text>
               <TouchableOpacity onPress={() => setShowAddIngredient(false)}>
                 <Text style={styles.modalCloseText}>✕</Text>
               </TouchableOpacity>
@@ -420,7 +408,7 @@ export default function CalculateAmountsScreen() {
 
             <ScrollView style={styles.modalBody}>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Ingredient Name</Text>
+                <Text style={styles.label}>{t.calculator.ingredientName}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="e.g., Chicken Breast"
@@ -431,7 +419,7 @@ export default function CalculateAmountsScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Protein per 100g</Text>
+                <Text style={styles.label}>{t.calculator.proteinPer100g}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="e.g., 25.5"
@@ -440,23 +428,21 @@ export default function CalculateAmountsScreen() {
                   keyboardType="decimal-pad"
                   placeholderTextColor="#9ca3af"
                 />
-                <Text style={styles.hint}>
-                  Ratios will be set using the slider after adding
-                </Text>
+                <Text style={styles.hint}>{t.calculator.ratiosWillBeSet}</Text>
               </View>
 
               <TouchableOpacity
                 style={styles.modalAddButton}
                 onPress={handleAddIngredient}
               >
-                <Text style={styles.modalAddButtonText}>Add Ingredient</Text>
+                <Text style={styles.modalAddButtonText}>{t.calculator.addIngredient}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.modalCancelButton}
                 onPress={() => setShowAddIngredient(false)}
               >
-                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+                <Text style={styles.modalCancelButtonText}>{t.cancel}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>

@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, TextInput, Button } from 'react-native';
 import { useState } from 'react';
 import { useProteinStore } from '../store/proteinStore';
+import { useLanguageStore } from '../store/languageStore';
 import { Recipe } from '../types';
 import { useRouter } from 'expo-router';
 
@@ -8,6 +9,7 @@ export default function RecipesScreen() {
   const recipes = useProteinStore((state) => state.recipes);
   const deleteRecipe = useProteinStore((state) => state.deleteRecipe);
   const addMealFromRecipe = useProteinStore((state) => state.addMealFromRecipe);
+  const t = useLanguageStore((state) => state.translations);
   const router = useRouter();
   const [expandedRecipe, setExpandedRecipe] = useState<string | null>(null);
   const [promptVisible, setPromptVisible] = useState(false);
@@ -17,19 +19,19 @@ export default function RecipesScreen() {
 
   const handleDeleteRecipe = (recipeId: string, recipeName: string) => {
     Alert.alert(
-      'Delete Recipe',
-      `Are you sure you want to delete "${recipeName}"?`,
+      t.recipes.deleteRecipe,
+      `${t.recipes.deleteConfirm} "${recipeName}"?`,
       [
         {
-          text: 'Cancel',
+          text: t.cancel,
           style: 'cancel',
         },
         {
-          text: 'Delete',
+          text: t.delete,
           style: 'destructive',
           onPress: () => {
             deleteRecipe(recipeId);
-            Alert.alert('Success', 'Recipe deleted');
+            Alert.alert(t.success, t.recipes.recipeDeleted);
           },
         },
       ]
@@ -49,18 +51,18 @@ export default function RecipesScreen() {
     if (promptMode === 'servings') {
       const servingCount = parseFloat(value || '1');
       if (isNaN(servingCount) || servingCount <= 0) {
-        Alert.alert('Error', 'Please enter a valid number of servings');
+        Alert.alert(t.error, t.recipes.errorInvalidServings);
         return;
       }
       
       setPromptVisible(false);
       addMealFromRecipe(recipe.id, servingCount);
       Alert.alert(
-        'Success',
-        `Added ${servingCount} serving${servingCount > 1 ? 's' : ''} of ${recipe.name} (${(recipe.totalProtein * servingCount).toFixed(1)}g protein)`,
+        t.success,
+        `${t.recipes.addedRecipe} ${servingCount} ${servingCount > 1 ? t.recipes.servings : t.recipes.serving} of ${recipe.name} (${(recipe.totalProtein * servingCount).toFixed(1)}g protein)`,
         [
           {
-            text: 'View Home',
+            text: t.quickMeal.viewHome,
             onPress: () => router.push('/'),
           },
           {
@@ -71,7 +73,7 @@ export default function RecipesScreen() {
     } else {
       const gramsAmount = parseFloat(value || '0');
       if (isNaN(gramsAmount) || gramsAmount <= 0) {
-        Alert.alert('Error', 'Please enter a valid weight in grams');
+        Alert.alert(t.error, t.recipes.errorInvalidGrams);
         return;
       }
       
@@ -80,11 +82,11 @@ export default function RecipesScreen() {
       const proteinPer100g = recipe.totalGrams > 0 ? (recipe.totalProtein / recipe.totalGrams) * 100 : 0;
       const proteinAmount = (proteinPer100g * gramsAmount) / 100;
       Alert.alert(
-        'Success',
-        `Added ${gramsAmount}g of ${recipe.name} (${proteinAmount.toFixed(1)}g protein)`,
+        t.success,
+        `${t.recipes.addedRecipe} ${gramsAmount}g of ${recipe.name} (${proteinAmount.toFixed(1)}g protein)`,
         [
           {
-            text: 'View Home',
+            text: t.quickMeal.viewHome,
             onPress: () => router.push('/'),
           },
           {
@@ -112,15 +114,15 @@ export default function RecipesScreen() {
         <View style={styles.content}>
           <View style={styles.emptyCard}>
             <Text style={styles.emptyIcon}>📖</Text>
-            <Text style={styles.emptyTitle}>No Recipes Yet</Text>
+            <Text style={styles.emptyTitle}>{t.recipes.noRecipesTitle}</Text>
             <Text style={styles.emptyText}>
-              Create your first recipe to quickly log meals with multiple ingredients
+              {t.recipes.noRecipesText}
             </Text>
             <TouchableOpacity
               style={styles.createButton}
               onPress={() => router.push('/create-recipe')}
             >
-              <Text style={styles.createButtonText}>Create Recipe</Text>
+              <Text style={styles.createButtonText}>{t.recipes.createRecipe}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -134,12 +136,12 @@ export default function RecipesScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {promptMode === 'servings' ? 'Log Recipe' : 'Log by Weight'}
+              {promptMode === 'servings' ? t.recipes.logRecipe : t.recipes.logByWeight}
             </Text>
             <Text style={styles.modalText}>
               {promptMode === 'servings' 
-                ? `How many servings of "${promptRecipe?.name}" did you eat?`
-                : `How many grams of "${promptRecipe?.name}"?\n\n(Total recipe: ${promptRecipe?.totalGrams}g)`
+                ? `${t.recipes.howMany} "${promptRecipe?.name}"?`
+                : `${t.recipes.howManyGrams} "${promptRecipe?.name}"?\n\n(${t.recipes.totalRecipe} ${promptRecipe?.totalGrams}g)`
               }
             </Text>
             <TextInput
@@ -151,14 +153,14 @@ export default function RecipesScreen() {
             />
             <View style={styles.modalButtons}>
               <Button
-                title="Cancel"
+                title={t.cancel}
                 onPress={() => {
                   setPromptVisible(false);
                   setPromptRecipe(null);
                 }}
               />
               <Button
-                title="Log"
+                title={t.recipes.log}
                 onPress={() => handleSubmitPrompt(promptValue, promptRecipe ?? undefined)}
               />
             </View>
@@ -167,9 +169,9 @@ export default function RecipesScreen() {
       </Modal>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>My Recipes</Text>
+          <Text style={styles.headerTitle}>{t.recipes.title}</Text>
           <Text style={styles.headerSubtitle}>
-            {recipes.length} recipe{recipes.length !== 1 ? 's' : ''} saved
+            {recipes.length} {recipes.length !== 1 ? t.recipes.recipeSaved : t.recipes.recipe}
           </Text>
         </View>
 
@@ -188,7 +190,7 @@ export default function RecipesScreen() {
                       {recipe.totalProtein.toFixed(1)}g protein • {recipe.totalGrams}g total
                     </Text>
                     <Text style={styles.recipeIngredientCount}>
-                      {recipe.ingredients.length} ingredient{recipe.ingredients.length !== 1 ? 's' : ''}
+                      {recipe.ingredients.length} {recipe.ingredients.length !== 1 ? t.recipes.ingredients : t.recipes.ingredient}
                     </Text>
                   </View>
                   <Text style={styles.expandIcon}>
@@ -200,7 +202,7 @@ export default function RecipesScreen() {
               {isExpanded && (
                 <View style={styles.recipeDetails}>
                   <View style={styles.ingredientsList}>
-                    <Text style={styles.ingredientsTitle}>Ingredients:</Text>
+                    <Text style={styles.ingredientsTitle}>{t.recipes.ingredients}:</Text>
                     {recipe.ingredients.map((ingredient) => (
                       <View key={ingredient.id} style={styles.ingredientRow}>
                         <View style={styles.ingredientLeft}>
@@ -223,13 +225,13 @@ export default function RecipesScreen() {
                       style={styles.logButton}
                       onPress={() => handleLogRecipe(recipe)}
                     >
-                      <Text style={styles.logButtonText}>Log as Meal</Text>
+                      <Text style={styles.logButtonText}>{t.recipes.logAsMeal}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.deleteButton}
                       onPress={() => handleDeleteRecipe(recipe.id, recipe.name)}
                     >
-                      <Text style={styles.deleteButtonText}>Delete</Text>
+                      <Text style={styles.deleteButtonText}>{t.delete}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -242,13 +244,13 @@ export default function RecipesScreen() {
           style={styles.addRecipeButton}
           onPress={() => router.push('/create-recipe')}
         >
-          <Text style={styles.addRecipeButtonText}>+ Create New Recipe</Text>
+          <Text style={styles.addRecipeButtonText}>+ {t.recipes.createRecipe}</Text>
         </TouchableOpacity>
 
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>💡 Quick Tip</Text>
+          <Text style={styles.infoTitle}>{t.recipes.quickTip}</Text>
           <Text style={styles.infoText}>
-            Tap on a recipe to see details and log it as a meal. You can specify multiple servings when logging!
+            {t.recipes.quickTipText}
           </Text>
         </View>
       </View>

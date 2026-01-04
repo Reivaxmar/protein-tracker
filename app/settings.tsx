@@ -1,41 +1,49 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useState } from 'react';
 import { useProteinStore } from '../store/proteinStore';
+import { useLanguageStore } from '../store/languageStore';
+import { Language } from '../translations';
 
 export default function SettingsScreen() {
   const targetProtein = useProteinStore((state) => state.targetProtein);
   const setTargetProtein = useProteinStore((state) => state.setTargetProtein);
+  const language = useLanguageStore((state) => state.language);
+  const setLanguage = useLanguageStore((state) => state.setLanguage);
+  const t = useLanguageStore((state) => state.translations);
   const [inputValue, setInputValue] = useState(targetProtein.toString());
 
   const handleSave = () => {
     const newTarget = parseFloat(inputValue);
     if (isNaN(newTarget) || newTarget <= 0) {
-      Alert.alert('Error', 'Please enter a valid protein limit value');
+      Alert.alert(t.error, t.settings.errorMessage);
       return;
     }
     setTargetProtein(newTarget);
-    Alert.alert('Success', 'Protein limit updated successfully!');
+    Alert.alert(t.success, t.settings.successMessage);
+  };
+
+  const handleLanguageChange = (newLanguage: Language) => {
+    setLanguage(newLanguage);
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.title}>Daily Protein Limit</Text>
+          <Text style={styles.title}>{t.settings.dailyProteinLimit}</Text>
           
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Maximum Protein (grams per day)</Text>
+            <Text style={styles.label}>{t.settings.maximumProtein}</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g., 150"
+              placeholder={t.settings.placeholder}
               value={inputValue}
               onChangeText={setInputValue}
               keyboardType="decimal-pad"
               placeholderTextColor="#9ca3af"
             />
             <Text style={styles.hint}>
-              Set your daily protein limit. The app will track your intake{'\n'}
-              and alert you when approaching or exceeding your limit.
+              {t.settings.hint}
             </Text>
           </View>
 
@@ -43,26 +51,63 @@ export default function SettingsScreen() {
             style={styles.button}
             onPress={handleSave}
           >
-            <Text style={styles.buttonText}>Save Limit</Text>
+            <Text style={styles.buttonText}>{t.settings.saveLimit}</Text>
           </TouchableOpacity>
         </View>
 
+        <View style={styles.card}>
+          <Text style={styles.title}>{t.settings.language}</Text>
+          
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>{t.settings.selectLanguage}</Text>
+            <View style={styles.languageButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.languageButton,
+                  language === 'en' && styles.languageButtonActive,
+                ]}
+                onPress={() => handleLanguageChange('en')}
+              >
+                <Text
+                  style={[
+                    styles.languageButtonText,
+                    language === 'en' && styles.languageButtonTextActive,
+                  ]}
+                >
+                  English
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.languageButton,
+                  language === 'es' && styles.languageButtonActive,
+                ]}
+                onPress={() => handleLanguageChange('es')}
+              >
+                <Text
+                  style={[
+                    styles.languageButtonText,
+                    language === 'es' && styles.languageButtonTextActive,
+                  ]}
+                >
+                  Español
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>About Protein Tracker</Text>
+          <Text style={styles.infoTitle}>{t.settings.aboutTitle}</Text>
           <Text style={styles.infoText}>
-            Track your daily protein intake to stay within your limit. 
-            Add meals manually or scan barcodes to monitor your protein consumption.
+            {t.settings.aboutText}
           </Text>
         </View>
 
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Features</Text>
+          <Text style={styles.infoTitle}>{t.settings.featuresTitle}</Text>
           <Text style={styles.infoText}>
-            ✓ Track daily protein intake{'\n'}
-            ✓ Add meals with custom protein values{'\n'}
-            ✓ Scan barcodes (requires food database integration){'\n'}
-            ✓ Monitor remaining allowance below your limit{'\n'}
-            ✓ Data persists across app restarts
+            {t.settings.featuresText}
           </Text>
         </View>
       </View>
@@ -151,5 +196,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     lineHeight: 20,
+  },
+  languageButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  languageButton: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+  },
+  languageButtonActive: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#3b82f6',
+  },
+  languageButtonText: {
+    color: '#6b7280',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  languageButtonTextActive: {
+    color: '#3b82f6',
   },
 });

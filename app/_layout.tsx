@@ -2,13 +2,17 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
 import { useProteinStore } from '../store/proteinStore';
+import { useLanguageStore } from '../store/languageStore';
 import * as Updates from 'expo-updates';
 
 export default function RootLayout() {
   const loadData = useProteinStore((state) => state.loadData);
+  const loadLanguage = useLanguageStore((state) => state.loadLanguage);
+  const translations = useLanguageStore((state) => state.translations);
 
   useEffect(() => {
     loadData();
+    loadLanguage();
     
     // Check for OTA updates on app launch
     async function checkForUpdates() {
@@ -49,7 +53,7 @@ export default function RootLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: translations.nav.home,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -58,7 +62,7 @@ export default function RootLayout() {
       <Tabs.Screen
         name="recipes"
         options={{
-          title: 'Recipes',
+          title: translations.nav.recipes,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="book" size={size} color={color} />
           ),
@@ -67,7 +71,7 @@ export default function RootLayout() {
       <Tabs.Screen
         name="create-recipe"
         options={{
-          title: 'Create Recipe',
+          title: translations.nav.createRecipe,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="restaurant" size={size} color={color} />
           ),
@@ -76,7 +80,7 @@ export default function RootLayout() {
       <Tabs.Screen
         name="quick-meal"
         options={{
-          title: 'Quick Meal',
+          title: translations.nav.quickMeal,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="fast-food" size={size} color={color} />
           ),
@@ -85,7 +89,7 @@ export default function RootLayout() {
       <Tabs.Screen
         name="calculate-amounts"
         options={{
-          title: 'Calculator',
+          title: translations.nav.calculator,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calculator" size={size} color={color} />
           ),
@@ -94,7 +98,7 @@ export default function RootLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: translations.nav.settings,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings" size={size} color={color} />
           ),

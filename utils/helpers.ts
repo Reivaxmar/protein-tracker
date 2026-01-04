@@ -8,9 +8,12 @@ export const getTodayDateString = () => {
   return new Date().toISOString().split('T')[0];
 };
 
-export const formatDate = (dateString: string) => {
+import { Language } from '../translations';
+
+export const formatDate = (dateString: string, language: Language = 'en') => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
+  const locale = language === 'es' ? 'es-ES' : 'en-US';
+  return date.toLocaleDateString(locale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
