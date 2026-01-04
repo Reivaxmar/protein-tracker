@@ -157,7 +157,7 @@ export default function CreateRecipeScreen() {
 
   const handleAddIngredient = () => {
     if (!selectedProduct) {
-      Alert.alert(t.error, t.createRecipe.errorNoName);
+      Alert.alert(t.error, t.quickMeal.errorNoProduct);
       return;
     }
 
