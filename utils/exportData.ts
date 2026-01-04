@@ -129,7 +129,7 @@ export async function exportAsCSV(data: ExportData): Promise<void> {
     const fileName = generateExportFileName('csv');
 
     // Web fallback: trigger browser download directly
-    if (Platform.OS === 'web' || typeof window !== 'undefined') {
+    if (Platform.OS === 'web') {
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -197,7 +197,7 @@ export async function exportAsXLSX(data: ExportData): Promise<void> {
     const fileName = generateExportFileName('xlsx');
 
     // Web fallback: create blob from base64 and trigger download
-    if (Platform.OS === 'web' || typeof window !== 'undefined') {
+    if (Platform.OS === 'web') {
       // convert base64 to binary
       const byteCharacters = atob(wbout);
       const byteNumbers = new Array(byteCharacters.length);
