@@ -2,6 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import { useState, useMemo } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
+import { useTagStore } from '../store/tagStore';
 import { searchProducts, OpenFoodFactsProduct, fetchProductByBarcode, ProductSearchFilters } from '../utils/api';
 import { getTodayDateString, generateUniqueId } from '../utils/helpers';
 import { useRouter } from 'expo-router';
@@ -52,8 +53,10 @@ export default function QuickMealScreen() {
   const [customIngredientName, setCustomIngredientName] = useState('');
   const [customIngredientProtein, setCustomIngredientProtein] = useState('');
   const [customIngredientGrams, setCustomIngredientGrams] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string>('');
   
   const addMeal = useProteinStore((state) => state.addMeal);
+  const tags = useTagStore((state) => state.tags);
 
   const calculatedProteinForIngredient = useMemo(() => {
     if (!gramsForIngredient || !selectedProduct?.nutriments?.proteins_100g) {
@@ -263,6 +266,7 @@ export default function QuickMealScreen() {
       proteinPer100g,
       gramsEaten: totalGrams,
       date: getTodayDateString(),
+      tag: selectedTag || undefined,
     });
 
     Alert.alert(t.success, `${t.quickMeal.mealLogged} ${totalProtein.toFixed(1)}g protein added.`, [
@@ -270,6 +274,7 @@ export default function QuickMealScreen() {
         text: t.quickMeal.viewHome,
         onPress: () => {
           setIngredients([]);
+          setSelectedTag('');
           router.push('/');
         },
       },
@@ -277,6 +282,7 @@ export default function QuickMealScreen() {
         text: t.quickMeal.addAnother,
         onPress: () => {
           setIngredients([]);
+          setSelectedTag('');
         },
       },
     ]);
@@ -500,6 +506,43 @@ export default function QuickMealScreen() {
                   {calculateTotalGrams()}g total
                 </Text>
               </View>
+            </View>
+
+            <View style={styles.tagSection}>
+              <Text style={styles.tagLabel}>Meal Tag (Optional)</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
+                <TouchableOpacity
+                  style={[
+                    styles.tagChip,
+                    !selectedTag && styles.tagChipActive
+                  ]}
+                  onPress={() => setSelectedTag('')}
+                >
+                  <Text style={[
+                    styles.tagChipText,
+                    !selectedTag && styles.tagChipTextActive
+                  ]}>
+                    None
+                  </Text>
+                </TouchableOpacity>
+                {tags.map((tag) => (
+                  <TouchableOpacity
+                    key={tag}
+                    style={[
+                      styles.tagChip,
+                      selectedTag === tag && styles.tagChipActive
+                    ]}
+                    onPress={() => setSelectedTag(tag)}
+                  >
+                    <Text style={[
+                      styles.tagChipText,
+                      selectedTag === tag && styles.tagChipTextActive
+                    ]}>
+                      {tag.charAt(0).toUpperCase() + tag.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
 
             <TouchableOpacity
@@ -1198,5 +1241,40 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     padding: 20,
+  },
+  tagSection: {
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  tagLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  tagScroll: {
+    flexDirection: 'row',
+  },
+  tagChip: {
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
+  },
+  tagChipActive: {
+    backgroundColor: '#3b82f6',
+    borderColor: '#3b82f6',
+  },
+  tagChipText: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  tagChipTextActive: {
+    color: '#ffffff',
+    fontWeight: '600',
   },
 });

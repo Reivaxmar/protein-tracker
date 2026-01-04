@@ -6,6 +6,7 @@ export interface Meal {
   totalProtein: number;
   date: string;
   timestamp: number;
+  tag?: string;
 }
 
 export interface DailyProteinData {
