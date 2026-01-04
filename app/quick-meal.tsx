@@ -538,7 +538,7 @@ export default function QuickMealScreen() {
                       styles.tagChipText,
                       selectedTag === tag && styles.tagChipTextActive
                     ]}>
-                      {tag.charAt(0).toUpperCase() + tag.slice(1)}
+                      {tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase()}
                     </Text>
                   </TouchableOpacity>
                 ))}

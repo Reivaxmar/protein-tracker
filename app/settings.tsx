@@ -32,12 +32,12 @@ export default function SettingsScreen() {
   };
 
   const handleAddTag = () => {
-    const trimmedTag = newTagValue.trim().toLowerCase();
+    const trimmedTag = newTagValue.trim();
     if (!trimmedTag) {
       Alert.alert(t.error, 'Please enter a tag name');
       return;
     }
-    if (tags.some(t => t.toLowerCase() === trimmedTag)) {
+    if (tags.some(t => t.toLowerCase() === trimmedTag.toLowerCase())) {
       Alert.alert(t.error, 'This tag already exists');
       return;
     }
@@ -147,7 +147,7 @@ export default function SettingsScreen() {
             <View style={styles.tagsContainer}>
               {tags.map((tag) => (
                 <View key={tag} style={styles.tagItem}>
-                  <Text style={styles.tagName}>{tag.charAt(0).toUpperCase() + tag.slice(1)}</Text>
+                  <Text style={styles.tagName}>{tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase()}</Text>
                   <TouchableOpacity
                     onPress={() => handleRemoveTag(tag)}
                     style={styles.removeTagButton}
