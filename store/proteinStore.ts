@@ -79,9 +79,86 @@ export const useProteinStore = create<AppState>((set, get) => ({
     get().saveData();
   },
 
+  deleteMeal: (mealId, date) => {
+    set((state) => {
+      const updatedMeals = state.meals.filter((m) => m.id !== mealId);
+      const dateMeals = updatedMeals.filter((m) => m.date === date);
+      const totalProtein = dateMeals.reduce((sum, m) => sum + m.totalProtein, 0);
+
+      const updatedDailyData = {
+        ...state.dailyProteinData,
+        [date]: {
+          date,
+          totalProtein,
+          targetProtein: state.targetProtein,
+          meals: dateMeals,
+        },
+      };
+
+      return {
+        meals: updatedMeals,
+        dailyProteinData: updatedDailyData,
+      };
+    });
+
+    get().saveData();
+  },
+
+  updateMeal: (mealId, date, updatedFields) => {
+    set((state) => {
+      const updatedMeals = state.meals.map((m) => {
+        if (m.id === mealId) {
+          const newGramsEaten = updatedFields.gramsEaten !== undefined ? updatedFields.gramsEaten : m.gramsEaten;
+          const newName = updatedFields.name !== undefined ? updatedFields.name : m.name;
+          const newTotalProtein = (m.proteinPer100g * newGramsEaten) / 100;
+          
+          return {
+            ...m,
+            name: newName,
+            gramsEaten: newGramsEaten,
+            totalProtein: newTotalProtein,
+          };
+        }
+        return m;
+      });
+
+      const dateMeals = updatedMeals.filter((m) => m.date === date);
+      const totalProtein = dateMeals.reduce((sum, m) => sum + m.totalProtein, 0);
+
+      const updatedDailyData = {
+        ...state.dailyProteinData,
+        [date]: {
+          date,
+          totalProtein,
+          targetProtein: state.targetProtein,
+          meals: dateMeals,
+        },
+      };
+
+      return {
+        meals: updatedMeals,
+        dailyProteinData: updatedDailyData,
+      };
+    });
+
+    get().saveData();
+  },
+
   deleteRecipe: (recipeId) => {
     set((state) => ({
       recipes: state.recipes.filter((r) => r.id !== recipeId),
+    }));
+
+    get().saveData();
+  },
+
+  updateRecipe: (recipeId, updatedRecipe) => {
+    set((state) => ({
+      recipes: state.recipes.map((r) => 
+        r.id === recipeId 
+          ? { ...updatedRecipe, id: recipeId, createdAt: r.createdAt }
+          : r
+      ),
     }));
 
     get().saveData();

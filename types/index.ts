@@ -40,10 +40,13 @@ export interface AppState {
   dailyProteinData: { [date: string]: DailyProteinData };
   recipes: Recipe[];
   addMeal: (meal: Omit<Meal, 'id' | 'totalProtein' | 'timestamp'>) => void;
+  deleteMeal: (mealId: string, date: string) => void;
+  updateMeal: (mealId: string, date: string, updatedFields: Partial<Pick<Meal, 'gramsEaten' | 'name'>>) => void;
   setTargetProtein: (target: number) => void;
   getTodayData: () => DailyProteinData;
   addRecipe: (recipe: Omit<Recipe, 'id' | 'createdAt'>) => void;
   deleteRecipe: (recipeId: string) => void;
+  updateRecipe: (recipeId: string, updatedRecipe: Omit<Recipe, 'id' | 'createdAt'>) => void;
   addMealFromRecipe: (recipeId: string, servingsOrGrams: number, useGrams?: boolean, tag?: string) => void;
   loadData: () => Promise<void>;
   saveData: () => Promise<void>;
