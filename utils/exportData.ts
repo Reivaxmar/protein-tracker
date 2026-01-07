@@ -216,7 +216,7 @@ export async function exportAsXLSX(data: ExportData): Promise<void> {
     }
 
     const file = new File(Paths.cache, fileName);
-    file.write(wbout, { encoding: 'base64' });
+    await file.write(wbout, { encoding: 'base64' });
 
     // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync();
