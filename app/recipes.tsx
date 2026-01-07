@@ -9,6 +9,7 @@ import { useRouter } from 'expo-router';
 export default function RecipesScreen() {
   const recipes = useProteinStore((state) => state.recipes);
   const deleteRecipe = useProteinStore((state) => state.deleteRecipe);
+  const updateRecipe = useProteinStore((state) => state.updateRecipe);
   const addMealFromRecipe = useProteinStore((state) => state.addMealFromRecipe);
   const t = useLanguageStore((state) => state.translations);
   const tags = useTagStore((state) => state.tags);
@@ -19,6 +20,9 @@ export default function RecipesScreen() {
   const [promptRecipe, setPromptRecipe] = useState<Recipe | null>(null);
   const [promptMode, setPromptMode] = useState<'servings' | 'grams'>('servings');
   const [selectedTag, setSelectedTag] = useState<string>('');
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+  const [editRecipeName, setEditRecipeName] = useState('');
 
   const handleDeleteRecipe = (recipeId: string, recipeName: string) => {
     Alert.alert(
@@ -39,6 +43,32 @@ export default function RecipesScreen() {
         },
       ]
     );
+  };
+
+  const handleEditRecipe = (recipe: Recipe) => {
+    setEditingRecipe(recipe);
+    setEditRecipeName(recipe.name);
+    setEditModalVisible(true);
+  };
+
+  const handleSaveRecipeEdit = () => {
+    if (!editingRecipe) return;
+    
+    if (!editRecipeName.trim()) {
+      Alert.alert(t.error, 'Please enter a recipe name');
+      return;
+    }
+
+    updateRecipe(editingRecipe.id, {
+      name: editRecipeName.trim(),
+      ingredients: editingRecipe.ingredients,
+      totalProtein: editingRecipe.totalProtein,
+      totalGrams: editingRecipe.totalGrams,
+    });
+
+    setEditModalVisible(false);
+    setEditingRecipe(null);
+    Alert.alert(t.success, 'Recipe updated successfully!');
   };
 
   const handleLogRecipe = (recipe: Recipe) => {
@@ -270,6 +300,12 @@ export default function RecipesScreen() {
                       <Text style={styles.logButtonText}>{t.recipes.logAsMeal}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => handleEditRecipe(recipe)}
+                    >
+                      <Text style={styles.editButtonText}>{t.edit}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
                       style={styles.deleteButton}
                       onPress={() => handleDeleteRecipe(recipe.id, recipe.name)}
                     >
@@ -296,6 +332,66 @@ export default function RecipesScreen() {
           </Text>
         </View>
       </View>
+
+      {/* Edit Recipe Modal */}
+      <Modal visible={editModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.editModalContent}>
+            <Text style={styles.modalTitle}>Edit Recipe</Text>
+            {editingRecipe && (
+              <>
+                <View style={styles.formGroup}>
+                  <Text style={styles.modalLabel}>Recipe Name:</Text>
+                  <TextInput
+                    value={editRecipeName}
+                    onChangeText={setEditRecipeName}
+                    style={styles.modalInput}
+                    autoFocus
+                  />
+                </View>
+                <View style={styles.ingredientsList}>
+                  <Text style={styles.modalLabel}>Ingredients:</Text>
+                  {editingRecipe.ingredients.map((ingredient) => (
+                    <View key={ingredient.id} style={styles.ingredientRow}>
+                      <View style={styles.ingredientLeft}>
+                        <Text style={styles.ingredientName}>
+                          • {ingredient.name}
+                        </Text>
+                        <Text style={styles.ingredientAmount}>
+                          {ingredient.gramsInRecipe}g
+                        </Text>
+                      </View>
+                      <Text style={styles.ingredientProtein}>
+                        {ingredient.totalProtein.toFixed(1)}g
+                      </Text>
+                    </View>
+                  ))}
+                  <Text style={styles.modalHint}>
+                    Note: To modify ingredients, please create a new recipe.
+                  </Text>
+                </View>
+              </>
+            )}
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => {
+                  setEditModalVisible(false);
+                  setEditingRecipe(null);
+                }}
+              >
+                <Text style={styles.modalCancelText}>{t.cancel}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalSaveButton}
+                onPress={handleSaveRecipeEdit}
+              >
+                <Text style={styles.modalSaveText}>{t.save}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -456,6 +552,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  editButton: {
+    backgroundColor: '#3b82f6',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+  },
+  editButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   deleteButton: {
     backgroundColor: '#ef4444',
     borderRadius: 8,
@@ -571,6 +678,58 @@ const styles = StyleSheet.create({
   },
   tagChipTextActive: {
     color: '#ffffff',
+    fontWeight: '600',
+  },
+  editModalContent: {
+    width: '90%',
+    maxHeight: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  formGroup: {
+    marginBottom: 16,
+  },
+  modalLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  modalHint: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontStyle: 'italic',
+    marginTop: 8,
+  },
+  modalCancelButton: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  modalCancelText: {
+    color: '#374151',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalSaveButton: {
+    flex: 1,
+    backgroundColor: '#3b82f6',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  modalSaveText: {
+    color: '#ffffff',
+    fontSize: 16,
     fontWeight: '600',
   },
 });
