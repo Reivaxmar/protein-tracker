@@ -149,13 +149,13 @@ export default function HomeScreen() {
                       onPress={() => handleEditMeal(meal)}
                       style={styles.editButton}
                     >
-                      <Text style={styles.editButtonText}>✏️</Text>
+                      <Text style={styles.editButtonText}>{t.edit}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => handleDeleteMeal(meal.id, meal.name)}
                       style={styles.deleteButton}
                     >
-                      <Text style={styles.deleteButtonText}>🗑️</Text>
+                      <Text style={styles.deleteButtonText}>{t.delete}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -324,16 +324,30 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   editButton: {
-    padding: 4,
+    backgroundColor: '#3b82f6',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   editButtonText: {
-    fontSize: 18,
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   deleteButton: {
-    padding: 4,
+    backgroundColor: '#ef4444',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   deleteButtonText: {
-    fontSize: 18,
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   mealNameRow: {
     flexDirection: 'row',

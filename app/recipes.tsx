@@ -303,7 +303,7 @@ export default function RecipesScreen() {
                       style={styles.editButton}
                       onPress={() => handleEditRecipe(recipe)}
                     >
-                      <Text style={styles.editButtonText}>✏️</Text>
+                      <Text style={styles.editButtonText}>{t.edit}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.deleteButton}
@@ -559,7 +559,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   editButtonText: {
-    fontSize: 20,
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   deleteButton: {
     backgroundColor: '#ef4444',

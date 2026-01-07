@@ -4,6 +4,7 @@ export interface Translations {
   // Common
   cancel: string;
   delete: string;
+  edit: string;
   save: string;
   success: string;
   error: string;
@@ -216,6 +217,7 @@ export const translations: Record<Language, Translations> = {
     // Common
     cancel: 'Cancel',
     delete: 'Delete',
+    edit: 'Edit',
     save: 'Save',
     success: 'Success',
     error: 'Error',
@@ -426,6 +428,7 @@ export const translations: Record<Language, Translations> = {
     // Común
     cancel: 'Cancelar',
     delete: 'Eliminar',
+    edit: 'Editar',
     save: 'Guardar',
     success: 'Éxito',
     error: 'Error',
