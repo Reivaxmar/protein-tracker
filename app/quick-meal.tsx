@@ -244,7 +244,7 @@ export default function QuickMealScreen() {
 
   const handleAddSavedIngredient = () => {
     if (!selectedSavedIngredient) {
-      Alert.alert(t.error, 'Please select an ingredient');
+      Alert.alert(t.error, t.quickMeal.errorNoIngredient);
       return;
     }
 
@@ -255,7 +255,7 @@ export default function QuickMealScreen() {
 
     const savedIngredient = customIngredients.find(i => i.id === selectedSavedIngredient);
     if (!savedIngredient) {
-      Alert.alert(t.error, 'Ingredient not found');
+      Alert.alert(t.error, t.quickMeal.errorIngredientNotFound);
       return;
     }
 
@@ -316,6 +316,8 @@ export default function QuickMealScreen() {
           setIngredients([]);
           setSelectedTag('');
           setMealName('');
+          setSelectedSavedIngredient('');
+          setSavedIngredientGrams('');
           router.push('/');
         },
       },
@@ -325,6 +327,8 @@ export default function QuickMealScreen() {
           setIngredients([]);
           setSelectedTag('');
           setMealName('');
+          setSelectedSavedIngredient('');
+          setSavedIngredientGrams('');
         },
       },
     ]);
@@ -403,7 +407,7 @@ export default function QuickMealScreen() {
 
           {customIngredients.length > 0 && (
             <View style={styles.savedIngredientsContainer}>
-              <Text style={styles.savedIngredientsTitle}>📋 Saved Custom Ingredients</Text>
+              <Text style={styles.savedIngredientsTitle}>{t.quickMeal.savedIngredientsTitle}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.savedIngredientsScroll}>
                 {customIngredients.map((ingredient) => (
                   <TouchableOpacity
@@ -435,7 +439,7 @@ export default function QuickMealScreen() {
                   <Text style={styles.label}>{t.quickMeal.amount}</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="e.g., 150"
+                    placeholder={t.quickMeal.amountPlaceholder}
                     value={savedIngredientGrams}
                     onChangeText={setSavedIngredientGrams}
                     keyboardType="decimal-pad"

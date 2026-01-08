@@ -104,6 +104,10 @@ export interface Translations {
     errorNoProtein: string;
     errorInvalidAmount: string;
     errorAtLeastOne: string;
+    errorNoIngredient: string;
+    errorIngredientNotFound: string;
+    savedIngredientsTitle: string;
+    amountPlaceholder: string;
   };
   
   // Recipes Screen
@@ -320,6 +324,10 @@ export const translations: Record<Language, Translations> = {
       errorNoProtein: 'This product does not have protein information',
       errorInvalidAmount: 'Please enter a valid amount in grams',
       errorAtLeastOne: 'Please add at least one ingredient',
+      errorNoIngredient: 'Please select an ingredient',
+      errorIngredientNotFound: 'Ingredient not found',
+      savedIngredientsTitle: '📋 Saved Custom Ingredients',
+      amountPlaceholder: 'e.g., 150',
     },
     
     // Recipes Screen
@@ -534,6 +542,10 @@ export const translations: Record<Language, Translations> = {
       errorNoProtein: 'Este producto no tiene información de proteínas',
       errorInvalidAmount: 'Por favor, introduce una cantidad válida en gramos',
       errorAtLeastOne: 'Por favor, añade al menos un ingrediente',
+      errorNoIngredient: 'Por favor, selecciona un ingrediente',
+      errorIngredientNotFound: 'Ingrediente no encontrado',
+      savedIngredientsTitle: '📋 Ingredientes Personalizados Guardados',
+      amountPlaceholder: 'p. ej., 150',
     },
     
     // Pantalla de Recetas
