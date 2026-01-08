@@ -90,6 +90,15 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
+        name="ingredients"
+        options={{
+          title: 'Ingredients',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="nutrition" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="calculate-amounts"
         options={{
           title: translations.nav.calculator,
