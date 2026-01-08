@@ -79,6 +79,8 @@ export interface Translations {
     proteinInAmount: string;
     addIngredient: string;
     mealIngredients: string;
+    mealName: string;
+    mealNamePlaceholder: string;
     totalMeal: string;
     logMealForToday: string;
     aboutTitle: string;
@@ -102,6 +104,13 @@ export interface Translations {
     errorNoProtein: string;
     errorInvalidAmount: string;
     errorAtLeastOne: string;
+    errorNoIngredient: string;
+    errorIngredientNotFound: string;
+    savedIngredientsTitle: string;
+    amountPlaceholder: string;
+    quickMealDefault: string;
+    mealTagLabel: string;
+    tagNone: string;
   };
   
   // Recipes Screen
@@ -293,6 +302,8 @@ export const translations: Record<Language, Translations> = {
       proteinInAmount: 'Protein in this amount:',
       addIngredient: 'Add Ingredient',
       mealIngredients: 'Meal Ingredients',
+      mealName: 'Meal Name (Optional)',
+      mealNamePlaceholder: 'e.g., Breakfast, Post-workout snack',
       totalMeal: 'Total Meal:',
       logMealForToday: 'Log Meal for Today',
       aboutTitle: '💡 About Quick Meal',
@@ -316,6 +327,13 @@ export const translations: Record<Language, Translations> = {
       errorNoProtein: 'This product does not have protein information',
       errorInvalidAmount: 'Please enter a valid amount in grams',
       errorAtLeastOne: 'Please add at least one ingredient',
+      errorNoIngredient: 'Please select an ingredient',
+      errorIngredientNotFound: 'Ingredient not found',
+      savedIngredientsTitle: '📋 Saved Custom Ingredients',
+      amountPlaceholder: 'e.g., 150',
+      quickMealDefault: 'Quick Meal',
+      mealTagLabel: 'Meal Tag (Optional)',
+      tagNone: 'None',
     },
     
     // Recipes Screen
@@ -505,6 +523,8 @@ export const translations: Record<Language, Translations> = {
       proteinInAmount: 'Proteína en esta cantidad:',
       addIngredient: 'Añadir Ingrediente',
       mealIngredients: 'Ingredientes de la Comida',
+      mealName: 'Nombre de la Comida (Opcional)',
+      mealNamePlaceholder: 'p. ej., Desayuno, Snack post-entrenamiento',
       totalMeal: 'Total de la Comida:',
       logMealForToday: 'Registrar Comida de Hoy',
       aboutTitle: '💡 Acerca de Comida Rápida',
@@ -528,6 +548,13 @@ export const translations: Record<Language, Translations> = {
       errorNoProtein: 'Este producto no tiene información de proteínas',
       errorInvalidAmount: 'Por favor, introduce una cantidad válida en gramos',
       errorAtLeastOne: 'Por favor, añade al menos un ingrediente',
+      errorNoIngredient: 'Por favor, selecciona un ingrediente',
+      errorIngredientNotFound: 'Ingrediente no encontrado',
+      savedIngredientsTitle: '📋 Ingredientes Personalizados Guardados',
+      amountPlaceholder: 'p. ej., 150',
+      quickMealDefault: 'Comida Rápida',
+      mealTagLabel: 'Etiqueta de Comida (Opcional)',
+      tagNone: 'Ninguna',
     },
     
     // Pantalla de Recetas

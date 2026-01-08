@@ -54,9 +54,13 @@ export default function QuickMealScreen() {
   const [customIngredientProtein, setCustomIngredientProtein] = useState('');
   const [customIngredientGrams, setCustomIngredientGrams] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('');
+  const [mealName, setMealName] = useState('');
+  const [selectedSavedIngredient, setSelectedSavedIngredient] = useState<string>('');
+  const [savedIngredientGrams, setSavedIngredientGrams] = useState('');
   
   const addMeal = useProteinStore((state) => state.addMeal);
   const tags = useTagStore((state) => state.tags);
+  const customIngredients = useProteinStore((state) => state.customIngredients);
 
   const calculatedProteinForIngredient = useMemo(() => {
     if (!gramsForIngredient || !selectedProduct?.nutriments?.proteins_100g) {
@@ -238,6 +242,40 @@ export default function QuickMealScreen() {
     Alert.alert(t.success, t.quickMeal.ingredientAdded);
   };
 
+  const handleAddSavedIngredient = () => {
+    if (!selectedSavedIngredient) {
+      Alert.alert(t.error, t.quickMeal.errorNoIngredient);
+      return;
+    }
+
+    if (!savedIngredientGrams || parseFloat(savedIngredientGrams) <= 0) {
+      Alert.alert(t.error, t.quickMeal.errorInvalidAmount);
+      return;
+    }
+
+    const savedIngredient = customIngredients.find(i => i.id === selectedSavedIngredient);
+    if (!savedIngredient) {
+      Alert.alert(t.error, t.quickMeal.errorIngredientNotFound);
+      return;
+    }
+
+    const grams = parseFloat(savedIngredientGrams);
+    const totalProtein = (savedIngredient.proteinPer100g * grams) / 100;
+
+    const newIngredient: QuickMealIngredient = {
+      id: generateUniqueId(),
+      name: savedIngredient.name,
+      proteinPer100g: savedIngredient.proteinPer100g,
+      gramsAmount: grams,
+      totalProtein,
+    };
+
+    setIngredients([...ingredients, newIngredient]);
+    setSelectedSavedIngredient('');
+    setSavedIngredientGrams('');
+    Alert.alert(t.success, t.quickMeal.ingredientAdded);
+  };
+
   const calculateTotalProtein = () => {
     return ingredients.reduce((sum, ing) => sum + ing.totalProtein, 0);
   };
@@ -256,13 +294,15 @@ export default function QuickMealScreen() {
     const totalProtein = calculateTotalProtein();
     const proteinPer100g = totalGrams > 0 ? (totalProtein / totalGrams) * 100 : 0;
 
-    // Create a meal name from the ingredients
-    const mealName = ingredients.length === 1 
+    // Use custom name if provided, otherwise generate automatic name
+    const automaticName = ingredients.length === 1 
       ? ingredients[0].name 
-      : `Quick Meal (${ingredients.length} items)`;
+      : `${t.quickMeal.quickMealDefault} (${ingredients.length} items)`;
+    
+    const finalMealName = mealName.trim() || automaticName;
 
     addMeal({
-      name: mealName,
+      name: finalMealName,
       proteinPer100g,
       gramsEaten: totalGrams,
       date: getTodayDateString(),
@@ -275,6 +315,9 @@ export default function QuickMealScreen() {
         onPress: () => {
           setIngredients([]);
           setSelectedTag('');
+          setMealName('');
+          setSelectedSavedIngredient('');
+          setSavedIngredientGrams('');
           router.push('/');
         },
       },
@@ -283,6 +326,9 @@ export default function QuickMealScreen() {
         onPress: () => {
           setIngredients([]);
           setSelectedTag('');
+          setMealName('');
+          setSelectedSavedIngredient('');
+          setSavedIngredientGrams('');
         },
       },
     ]);
@@ -296,6 +342,17 @@ export default function QuickMealScreen() {
           <Text style={styles.subtitle}>
             {t.quickMeal.subtitle}
           </Text>
+          
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>{t.quickMeal.mealName}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t.quickMeal.mealNamePlaceholder}
+              value={mealName}
+              onChangeText={setMealName}
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
         </View>
 
         <View style={styles.card}>
@@ -347,6 +404,73 @@ export default function QuickMealScreen() {
           >
             <Text style={styles.customIngredientButtonText}>{t.quickMeal.addCustomIngredient}</Text>
           </TouchableOpacity>
+
+          {customIngredients.length > 0 && (
+            <View style={styles.savedIngredientsContainer}>
+              <Text style={styles.savedIngredientsTitle}>{t.quickMeal.savedIngredientsTitle}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.savedIngredientsScroll}>
+                {customIngredients.map((ingredient) => (
+                  <TouchableOpacity
+                    key={ingredient.id}
+                    style={[
+                      styles.savedIngredientChip,
+                      selectedSavedIngredient === ingredient.id && styles.savedIngredientChipActive
+                    ]}
+                    onPress={() => setSelectedSavedIngredient(ingredient.id)}
+                  >
+                    <Text style={[
+                      styles.savedIngredientChipText,
+                      selectedSavedIngredient === ingredient.id && styles.savedIngredientChipTextActive
+                    ]}>
+                      {ingredient.name}
+                    </Text>
+                    <Text style={[
+                      styles.savedIngredientChipProtein,
+                      selectedSavedIngredient === ingredient.id && styles.savedIngredientChipProteinActive
+                    ]}>
+                      {ingredient.proteinPer100g.toFixed(1)}g/100g
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {selectedSavedIngredient && (
+                <View style={styles.savedIngredientForm}>
+                  <Text style={styles.label}>{t.quickMeal.amount}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t.quickMeal.amountPlaceholder}
+                    value={savedIngredientGrams}
+                    onChangeText={setSavedIngredientGrams}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor="#9ca3af"
+                  />
+                  
+                  {savedIngredientGrams && parseFloat(savedIngredientGrams) > 0 && (
+                    <View style={styles.calculatedProtein}>
+                      <Text style={styles.calculatedLabel}>{t.quickMeal.proteinInAmount}</Text>
+                      <Text style={styles.calculatedValue}>
+                        {(() => {
+                          const savedIng = customIngredients.find(i => i.id === selectedSavedIngredient);
+                          if (savedIng) {
+                            return ((savedIng.proteinPer100g * parseFloat(savedIngredientGrams)) / 100).toFixed(1);
+                          }
+                          return '0';
+                        })()}g
+                      </Text>
+                    </View>
+                  )}
+
+                  <TouchableOpacity
+                    style={styles.addIngredientButton}
+                    onPress={handleAddSavedIngredient}
+                  >
+                    <Text style={styles.addIngredientButtonText}>{t.quickMeal.addIngredient}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
 
           {showFilters && (
             <View style={styles.filtersContainer}>
@@ -509,7 +633,7 @@ export default function QuickMealScreen() {
             </View>
 
             <View style={styles.tagSection}>
-              <Text style={styles.tagLabel}>Meal Tag (Optional)</Text>
+              <Text style={styles.tagLabel}>{t.quickMeal.mealTagLabel}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
                 <TouchableOpacity
                   style={[
@@ -522,7 +646,7 @@ export default function QuickMealScreen() {
                     styles.tagChipText,
                     !selectedTag && styles.tagChipTextActive
                   ]}>
-                    None
+                    {t.quickMeal.tagNone}
                   </Text>
                 </TouchableOpacity>
                 {tags.map((tag) => (
@@ -1276,5 +1400,58 @@ const styles = StyleSheet.create({
   tagChipTextActive: {
     color: '#ffffff',
     fontWeight: '600',
+  },
+  savedIngredientsContainer: {
+    backgroundColor: '#f0fdf4',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  savedIngredientsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#166534',
+    marginBottom: 8,
+  },
+  savedIngredientsScroll: {
+    marginBottom: 8,
+  },
+  savedIngredientChip: {
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#86efac',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginRight: 8,
+  },
+  savedIngredientChipActive: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
+  },
+  savedIngredientChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#166534',
+  },
+  savedIngredientChipTextActive: {
+    color: '#ffffff',
+  },
+  savedIngredientChipProtein: {
+    fontSize: 11,
+    color: '#16a34a',
+    marginTop: 2,
+  },
+  savedIngredientChipProteinActive: {
+    color: '#dcfce7',
+  },
+  savedIngredientForm: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#86efac',
   },
 });
