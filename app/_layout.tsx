@@ -90,6 +90,12 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
+        name="ingredients"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="calculate-amounts"
         options={{
           title: translations.nav.calculator,

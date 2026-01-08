@@ -46,8 +46,11 @@ export default function CreateRecipeScreen() {
   const [customIngredientName, setCustomIngredientName] = useState('');
   const [customIngredientProtein, setCustomIngredientProtein] = useState('');
   const [customIngredientGrams, setCustomIngredientGrams] = useState('');
+  const [selectedSavedIngredient, setSelectedSavedIngredient] = useState<string>('');
+  const [savedIngredientGrams, setSavedIngredientGrams] = useState('');
   
   const addRecipe = useProteinStore((state) => state.addRecipe);
+  const customIngredients = useProteinStore((state) => state.customIngredients);
 
   const calculatedProteinForIngredient = useMemo(() => {
     if (!gramsForIngredient || !selectedProduct?.nutriments?.proteins_100g) {
@@ -229,6 +232,40 @@ export default function CreateRecipeScreen() {
     Alert.alert(t.success, t.createRecipe.ingredientAdded);
   };
 
+  const handleAddSavedIngredient = () => {
+    if (!selectedSavedIngredient) {
+      Alert.alert(t.error, 'Please select an ingredient');
+      return;
+    }
+
+    if (!savedIngredientGrams || parseFloat(savedIngredientGrams) <= 0) {
+      Alert.alert(t.error, t.quickMeal.errorInvalidAmount);
+      return;
+    }
+
+    const savedIngredient = customIngredients.find(i => i.id === selectedSavedIngredient);
+    if (!savedIngredient) {
+      Alert.alert(t.error, 'Ingredient not found');
+      return;
+    }
+
+    const grams = parseFloat(savedIngredientGrams);
+    const totalProtein = (savedIngredient.proteinPer100g * grams) / 100;
+
+    const newIngredient: RecipeIngredient = {
+      id: generateUniqueId(),
+      name: savedIngredient.name,
+      proteinPer100g: savedIngredient.proteinPer100g,
+      gramsInRecipe: grams,
+      totalProtein,
+    };
+
+    setIngredients([...ingredients, newIngredient]);
+    setSelectedSavedIngredient('');
+    setSavedIngredientGrams('');
+    Alert.alert(t.success, t.createRecipe.ingredientAdded);
+  };
+
   const calculateTotalProtein = () => {
     return ingredients.reduce((sum, ing) => sum + ing.totalProtein, 0);
   };
@@ -334,6 +371,83 @@ export default function CreateRecipeScreen() {
           >
             <Text style={styles.customIngredientButtonText}>{t.createRecipe.addCustomIngredient}</Text>
           </TouchableOpacity>
+
+          {customIngredients.length > 0 && (
+            <View style={styles.savedIngredientsContainer}>
+              <Text style={styles.savedIngredientsTitle}>📋 Saved Custom Ingredients</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.savedIngredientsScroll}>
+                {customIngredients.map((ingredient) => (
+                  <TouchableOpacity
+                    key={ingredient.id}
+                    style={[
+                      styles.savedIngredientChip,
+                      selectedSavedIngredient === ingredient.id && styles.savedIngredientChipActive
+                    ]}
+                    onPress={() => setSelectedSavedIngredient(ingredient.id)}
+                  >
+                    <Text style={[
+                      styles.savedIngredientChipText,
+                      selectedSavedIngredient === ingredient.id && styles.savedIngredientChipTextActive
+                    ]}>
+                      {ingredient.name}
+                    </Text>
+                    <Text style={[
+                      styles.savedIngredientChipProtein,
+                      selectedSavedIngredient === ingredient.id && styles.savedIngredientChipProteinActive
+                    ]}>
+                      {ingredient.proteinPer100g.toFixed(1)}g/100g
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {selectedSavedIngredient && (
+                <View style={styles.savedIngredientForm}>
+                  <Text style={styles.label}>{t.createRecipe.amount}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="e.g., 150"
+                    value={savedIngredientGrams}
+                    onChangeText={setSavedIngredientGrams}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor="#9ca3af"
+                  />
+                  
+                  {savedIngredientGrams && parseFloat(savedIngredientGrams) > 0 && (
+                    <View style={styles.calculatedProtein}>
+                      <Text style={styles.calculatedLabel}>{t.createRecipe.proteinInAmount}</Text>
+                      <Text style={styles.calculatedValue}>
+                        {(() => {
+                          const savedIng = customIngredients.find(i => i.id === selectedSavedIngredient);
+                          if (savedIng) {
+                            return ((savedIng.proteinPer100g * parseFloat(savedIngredientGrams)) / 100).toFixed(1);
+                          }
+                          return '0';
+                        })()}g
+                      </Text>
+                    </View>
+                  )}
+
+                  <TouchableOpacity
+                    style={styles.addIngredientButton}
+                    onPress={handleAddSavedIngredient}
+                  >
+                    <Text style={styles.addIngredientButtonText}>{t.createRecipe.addToRecipe}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => {
+                      setSelectedSavedIngredient('');
+                      setSavedIngredientGrams('');
+                    }}
+                  >
+                    <Text style={styles.cancelButtonText}>{t.cancel}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
 
           {showFilters && (
             <View style={styles.filtersContainer}>
@@ -1187,5 +1301,58 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     padding: 20,
+  },
+  savedIngredientsContainer: {
+    backgroundColor: '#f0fdf4',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  savedIngredientsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#166534',
+    marginBottom: 8,
+  },
+  savedIngredientsScroll: {
+    marginBottom: 8,
+  },
+  savedIngredientChip: {
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#86efac',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginRight: 8,
+  },
+  savedIngredientChipActive: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
+  },
+  savedIngredientChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#166534',
+  },
+  savedIngredientChipTextActive: {
+    color: '#ffffff',
+  },
+  savedIngredientChipProtein: {
+    fontSize: 11,
+    color: '#16a34a',
+    marginTop: 2,
+  },
+  savedIngredientChipProteinActive: {
+    color: '#dcfce7',
+  },
+  savedIngredientForm: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#86efac',
   },
 });
