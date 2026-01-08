@@ -14,17 +14,15 @@ export default function RootLayout() {
   const translations = useLanguageStore((state) => state.translations);
 
   useEffect(() => {
-    // Ensure reasonable global font scaling to avoid layout breakage
-    // on devices with very large accessibility font sizes.
-    // Adjust `maxFontSizeMultiplier` as desired (1.0 = no scaling).
+    // Disable font scaling to prevent UI layout breakage on devices with
+    // very large accessibility font sizes. This ensures consistent UI across
+    // all devices regardless of system font size settings.
     try {
       if ((Text as any).defaultProps == null) (Text as any).defaultProps = {};
-      (Text as any).defaultProps.allowFontScaling = true;
-      (Text as any).defaultProps.maxFontSizeMultiplier = 1.2;
+      (Text as any).defaultProps.allowFontScaling = false;
 
       if ((TextInput as any).defaultProps == null) (TextInput as any).defaultProps = {};
-      (TextInput as any).defaultProps.allowFontScaling = true;
-      (TextInput as any).defaultProps.maxFontSizeMultiplier = 1.2;
+      (TextInput as any).defaultProps.allowFontScaling = false;
     } catch (e) {
       // Non-critical; continue if platform doesn't support defaultProps assignment
       console.warn('Could not set global text defaults', e);
