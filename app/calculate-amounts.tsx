@@ -12,6 +12,7 @@ interface CalculatorIngredient {
 
 export default function CalculateAmountsScreen() {
   const t = useLanguageStore((state) => state.translations);
+  const customIngredients = useProteinStore((state) => state.customIngredients);
   const [ingredients, setIngredients] = useState<CalculatorIngredient[]>([]);
   const [sliderPoints, setSliderPoints] = useState<number[]>([]); // Positions from 0 to 100
   const [targetProteinAmount, setTargetProteinAmount] = useState('50'); // Default to 50g
@@ -90,6 +91,11 @@ export default function CalculateAmountsScreen() {
       };
     });
   }, [ingredients, ingredientRatios, targetProteinAmount, totalRatio]);
+
+  const handleSelectCustomIngredient = (customIngredient: { name: string; proteinPer100g: number }) => {
+    setNewIngredientName(customIngredient.name);
+    setNewIngredientProtein(customIngredient.proteinPer100g.toString());
+  };
 
   const handleAddIngredient = () => {
     if (!newIngredientName.trim()) {
@@ -407,6 +413,28 @@ export default function CalculateAmountsScreen() {
             </View>
 
             <ScrollView style={styles.modalBody}>
+              {customIngredients.length > 0 && (
+                <View style={styles.savedIngredientsSection}>
+                  <Text style={styles.savedIngredientsTitle}>📋 Saved Custom Ingredients</Text>
+                  <Text style={styles.savedIngredientsHint}>Tap to use</Text>
+                  <View style={styles.savedIngredientsList}>
+                    {customIngredients.map((ingredient) => (
+                      <TouchableOpacity
+                        key={ingredient.id}
+                        style={styles.savedIngredientItem}
+                        onPress={() => handleSelectCustomIngredient(ingredient)}
+                      >
+                        <Text style={styles.savedIngredientName}>{ingredient.name}</Text>
+                        <Text style={styles.savedIngredientProtein}>
+                          {ingredient.proteinPer100g.toFixed(1)}g/100g
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <View style={styles.divider} />
+                </View>
+              )}
+
               <View style={styles.formGroup}>
                 <Text style={styles.label}>{t.calculator.ingredientName}</Text>
                 <TextInput
@@ -819,5 +847,48 @@ const styles = StyleSheet.create({
     color: '#374151',
     fontSize: 16,
     fontWeight: '600',
+  },
+  savedIngredientsSection: {
+    marginBottom: 20,
+  },
+  savedIngredientsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 4,
+  },
+  savedIngredientsHint: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 12,
+  },
+  savedIngredientsList: {
+    gap: 8,
+  },
+  savedIngredientItem: {
+    backgroundColor: '#f0fdf4',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  savedIngredientName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+    flex: 1,
+  },
+  savedIngredientProtein: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#10b981',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginTop: 16,
   },
 });
