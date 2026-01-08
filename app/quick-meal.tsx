@@ -54,6 +54,7 @@ export default function QuickMealScreen() {
   const [customIngredientProtein, setCustomIngredientProtein] = useState('');
   const [customIngredientGrams, setCustomIngredientGrams] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('');
+  const [mealName, setMealName] = useState('');
   
   const addMeal = useProteinStore((state) => state.addMeal);
   const tags = useTagStore((state) => state.tags);
@@ -256,13 +257,15 @@ export default function QuickMealScreen() {
     const totalProtein = calculateTotalProtein();
     const proteinPer100g = totalGrams > 0 ? (totalProtein / totalGrams) * 100 : 0;
 
-    // Create a meal name from the ingredients
-    const mealName = ingredients.length === 1 
+    // Use custom name if provided, otherwise generate automatic name
+    const automaticName = ingredients.length === 1 
       ? ingredients[0].name 
       : `Quick Meal (${ingredients.length} items)`;
+    
+    const finalMealName = mealName.trim() || automaticName;
 
     addMeal({
-      name: mealName,
+      name: finalMealName,
       proteinPer100g,
       gramsEaten: totalGrams,
       date: getTodayDateString(),
@@ -275,6 +278,7 @@ export default function QuickMealScreen() {
         onPress: () => {
           setIngredients([]);
           setSelectedTag('');
+          setMealName('');
           router.push('/');
         },
       },
@@ -283,6 +287,7 @@ export default function QuickMealScreen() {
         onPress: () => {
           setIngredients([]);
           setSelectedTag('');
+          setMealName('');
         },
       },
     ]);
@@ -506,6 +511,17 @@ export default function QuickMealScreen() {
                   {calculateTotalGrams()}g total
                 </Text>
               </View>
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>{t.quickMeal.mealName}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={t.quickMeal.mealNamePlaceholder}
+                value={mealName}
+                onChangeText={setMealName}
+                placeholderTextColor="#9ca3af"
+              />
             </View>
 
             <View style={styles.tagSection}>

@@ -79,6 +79,8 @@ export interface Translations {
     proteinInAmount: string;
     addIngredient: string;
     mealIngredients: string;
+    mealName: string;
+    mealNamePlaceholder: string;
     totalMeal: string;
     logMealForToday: string;
     aboutTitle: string;
@@ -293,6 +295,8 @@ export const translations: Record<Language, Translations> = {
       proteinInAmount: 'Protein in this amount:',
       addIngredient: 'Add Ingredient',
       mealIngredients: 'Meal Ingredients',
+      mealName: 'Meal Name (Optional)',
+      mealNamePlaceholder: 'e.g., Breakfast, Post-workout snack',
       totalMeal: 'Total Meal:',
       logMealForToday: 'Log Meal for Today',
       aboutTitle: '💡 About Quick Meal',
@@ -505,6 +509,8 @@ export const translations: Record<Language, Translations> = {
       proteinInAmount: 'Proteína en esta cantidad:',
       addIngredient: 'Añadir Ingrediente',
       mealIngredients: 'Ingredientes de la Comida',
+      mealName: 'Nombre de la Comida (Opcional)',
+      mealNamePlaceholder: 'p. ej., Desayuno, Snack post-entrenamiento',
       totalMeal: 'Total de la Comida:',
       logMealForToday: 'Registrar Comida de Hoy',
       aboutTitle: '💡 Acerca de Comida Rápida',
