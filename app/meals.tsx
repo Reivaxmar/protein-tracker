@@ -19,6 +19,8 @@ export default function MealsScreen() {
         return <CreateRecipeScreen />;
       case 'quick':
         return <QuickMealScreen />;
+      default:
+        return <RecipesScreen />;
     }
   };
 
