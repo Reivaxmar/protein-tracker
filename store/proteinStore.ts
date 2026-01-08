@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppState, Meal, DailyProteinData, Recipe } from '../types';
+import { AppState, Meal, DailyProteinData, Recipe, CustomIngredient } from '../types';
 import { getTodayDateString, generateUniqueId } from '../utils/helpers';
 
 const STORAGE_KEY = '@protein_tracker_data';
@@ -10,6 +10,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
   meals: [],
   dailyProteinData: {},
   recipes: [],
+  customIngredients: [],
 
   addMeal: (meal) => {
     const newMeal: Meal = {
@@ -201,6 +202,40 @@ export const useProteinStore = create<AppState>((set, get) => ({
     });
   },
 
+  addCustomIngredient: (ingredient) => {
+    const newIngredient: CustomIngredient = {
+      ...ingredient,
+      id: generateUniqueId(),
+      createdAt: Date.now(),
+    };
+
+    set((state) => ({
+      customIngredients: [...state.customIngredients, newIngredient],
+    }));
+
+    get().saveData();
+  },
+
+  deleteCustomIngredient: (ingredientId) => {
+    set((state) => ({
+      customIngredients: state.customIngredients.filter((i) => i.id !== ingredientId),
+    }));
+
+    get().saveData();
+  },
+
+  updateCustomIngredient: (ingredientId, updatedIngredient) => {
+    set((state) => ({
+      customIngredients: state.customIngredients.map((i) => 
+        i.id === ingredientId 
+          ? { ...updatedIngredient, id: ingredientId, createdAt: i.createdAt }
+          : i
+      ),
+    }));
+
+    get().saveData();
+  },
+
   loadData: async () => {
     try {
       const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
@@ -211,6 +246,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
           meals: data.meals || [],
           dailyProteinData: data.dailyProteinData || {},
           recipes: data.recipes || [],
+          customIngredients: data.customIngredients || [],
         });
       }
     } catch (e) {
@@ -226,6 +262,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
         meals: state.meals,
         dailyProteinData: state.dailyProteinData,
         recipes: state.recipes,
+        customIngredients: state.customIngredients,
       };
       const jsonValue = JSON.stringify(data);
       await AsyncStorage.setItem(STORAGE_KEY, jsonValue);

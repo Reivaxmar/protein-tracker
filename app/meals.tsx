@@ -4,8 +4,9 @@ import { useLanguageStore } from '../store/languageStore';
 import RecipesScreen from './recipes';
 import CreateRecipeScreen from './create-recipe';
 import QuickMealScreen from './quick-meal';
+import IngredientsScreen from './ingredients';
 
-type MealTab = 'recipes' | 'create' | 'quick';
+type MealTab = 'recipes' | 'create' | 'quick' | 'ingredients';
 
 export default function MealsScreen() {
   const [activeTab, setActiveTab] = useState<MealTab>('recipes');
@@ -19,6 +20,8 @@ export default function MealsScreen() {
         return <CreateRecipeScreen />;
       case 'quick':
         return <QuickMealScreen />;
+      case 'ingredients':
+        return <IngredientsScreen />;
       default:
         return <RecipesScreen />;
     }
@@ -33,6 +36,14 @@ export default function MealsScreen() {
         >
           <Text style={[styles.tabText, activeTab === 'recipes' && styles.activeTabText]}>
             {t.nav.recipes}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'ingredients' && styles.activeTab]}
+          onPress={() => setActiveTab('ingredients')}
+        >
+          <Text style={[styles.tabText, activeTab === 'ingredients' && styles.activeTabText]}>
+            Ingredients
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
