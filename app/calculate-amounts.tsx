@@ -3,6 +3,7 @@ import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
 import { generateUniqueId, getTodayDateString } from '../utils/helpers';
+import { CustomIngredient } from '../types';
 
 interface CalculatorIngredient {
   id: string;
@@ -92,7 +93,7 @@ export default function CalculateAmountsScreen() {
     });
   }, [ingredients, ingredientRatios, targetProteinAmount, totalRatio]);
 
-  const handleSelectCustomIngredient = (customIngredient: { name: string; proteinPer100g: number }) => {
+  const handleSelectCustomIngredient = (customIngredient: Pick<CustomIngredient, 'name' | 'proteinPer100g'>) => {
     setNewIngredientName(customIngredient.name);
     setNewIngredientProtein(customIngredient.proteinPer100g.toString());
   };
