@@ -63,30 +63,30 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
-        name="recipes"
+        name="meals"
         options={{
-          title: translations.nav.recipes,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="book" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="create-recipe"
-        options={{
-          title: translations.nav.createRecipe,
+          title: translations.nav.meals,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="restaurant" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
+        name="recipes"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="create-recipe"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="quick-meal"
         options={{
-          title: translations.nav.quickMeal,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="fast-food" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen

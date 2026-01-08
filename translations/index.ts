@@ -13,6 +13,7 @@ export interface Translations {
   // Navigation
   nav: {
     home: string;
+    meals: string;
     recipes: string;
     createRecipe: string;
     quickMeal: string;
@@ -226,6 +227,7 @@ export const translations: Record<Language, Translations> = {
     // Navigation
     nav: {
       home: 'Home',
+      meals: 'Meals',
       recipes: 'Recipes',
       createRecipe: 'Create Recipe',
       quickMeal: 'Quick Meal',
@@ -437,6 +439,7 @@ export const translations: Record<Language, Translations> = {
     // Navegación
     nav: {
       home: 'Inicio',
+      meals: 'Comidas',
       recipes: 'Recetas',
       createRecipe: 'Crear Receta',
       quickMeal: 'Comida Rápida',
