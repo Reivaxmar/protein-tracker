@@ -297,7 +297,7 @@ export default function QuickMealScreen() {
     // Use custom name if provided, otherwise generate automatic name
     const automaticName = ingredients.length === 1 
       ? ingredients[0].name 
-      : `Quick Meal (${ingredients.length} items)`;
+      : `${t.quickMeal.quickMealDefault} (${ingredients.length} items)`;
     
     const finalMealName = mealName.trim() || automaticName;
 
@@ -633,7 +633,7 @@ export default function QuickMealScreen() {
             </View>
 
             <View style={styles.tagSection}>
-              <Text style={styles.tagLabel}>Meal Tag (Optional)</Text>
+              <Text style={styles.tagLabel}>{t.quickMeal.mealTagLabel}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
                 <TouchableOpacity
                   style={[
@@ -646,7 +646,7 @@ export default function QuickMealScreen() {
                     styles.tagChipText,
                     !selectedTag && styles.tagChipTextActive
                   ]}>
-                    None
+                    {t.quickMeal.tagNone}
                   </Text>
                 </TouchableOpacity>
                 {tags.map((tag) => (

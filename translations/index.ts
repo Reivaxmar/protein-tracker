@@ -108,6 +108,9 @@ export interface Translations {
     errorIngredientNotFound: string;
     savedIngredientsTitle: string;
     amountPlaceholder: string;
+    quickMealDefault: string;
+    mealTagLabel: string;
+    tagNone: string;
   };
   
   // Recipes Screen
@@ -328,6 +331,9 @@ export const translations: Record<Language, Translations> = {
       errorIngredientNotFound: 'Ingredient not found',
       savedIngredientsTitle: '📋 Saved Custom Ingredients',
       amountPlaceholder: 'e.g., 150',
+      quickMealDefault: 'Quick Meal',
+      mealTagLabel: 'Meal Tag (Optional)',
+      tagNone: 'None',
     },
     
     // Recipes Screen
@@ -546,6 +552,9 @@ export const translations: Record<Language, Translations> = {
       errorIngredientNotFound: 'Ingrediente no encontrado',
       savedIngredientsTitle: '📋 Ingredientes Personalizados Guardados',
       amountPlaceholder: 'p. ej., 150',
+      quickMealDefault: 'Comida Rápida',
+      mealTagLabel: 'Etiqueta de Comida (Opcional)',
+      tagNone: 'Ninguna',
     },
     
     // Pantalla de Recetas
