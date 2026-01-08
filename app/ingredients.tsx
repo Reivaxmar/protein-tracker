@@ -100,20 +100,22 @@ export default function IngredientsScreen() {
 
   if (customIngredients.length === 0) {
     return (
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>🥗</Text>
-            <Text style={styles.emptyTitle}>No Custom Ingredients Yet</Text>
-            <Text style={styles.emptyText}>
-              Create custom ingredients to quickly add them to your recipes
-            </Text>
-            <TouchableOpacity
-              style={styles.createButton}
-              onPress={openAddModal}
-            >
-              <Text style={styles.createButtonText}>Create Ingredient</Text>
-            </TouchableOpacity>
+      <>
+        <View style={styles.container}>
+          <View style={styles.content}>
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyIcon}>🥗</Text>
+              <Text style={styles.emptyTitle}>No Custom Ingredients Yet</Text>
+              <Text style={styles.emptyText}>
+                Create custom ingredients to quickly add them to your recipes
+              </Text>
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={openAddModal}
+              >
+                <Text style={styles.createButtonText}>Create Ingredient</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -164,7 +166,58 @@ export default function IngredientsScreen() {
             </View>
           </View>
         </Modal>
-      </View>
+
+        {/* Edit Ingredient Modal */}
+        <Modal visible={showEditModal} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Edit Ingredient</Text>
+              
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Ingredient Name</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., Grilled Chicken"
+                  value={ingredientName}
+                  onChangeText={setIngredientName}
+                  placeholderTextColor="#9ca3af"
+                  autoFocus
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Protein per 100g</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., 25.5"
+                  value={ingredientProtein}
+                  onChangeText={setIngredientProtein}
+                  keyboardType="decimal-pad"
+                  placeholderTextColor="#9ca3af"
+                />
+              </View>
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.modalCancelButton}
+                  onPress={() => {
+                    setShowEditModal(false);
+                    setEditingIngredient(null);
+                  }}
+                >
+                  <Text style={styles.modalCancelText}>{t.cancel}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalSaveButton}
+                  onPress={handleSaveEdit}
+                >
+                  <Text style={styles.modalSaveText}>{t.save}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </>
     );
   }
 
