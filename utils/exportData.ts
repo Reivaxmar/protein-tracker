@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import * as FileSystem from 'expo-file-system/legacy';
+import { Paths, File } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 import { Meal, DailyProteinData } from '../types';
@@ -142,15 +142,13 @@ export async function exportAsCSV(data: ExportData): Promise<void> {
       return;
     }
 
-    const fileUri = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + fileName;
-    await FileSystem.writeAsStringAsync(fileUri, csv, {
-      encoding: FileSystem.EncodingType.UTF8,
-    });
+    const file = new File(Paths.cache, fileName);
+    await file.write(csv);
 
     // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync();
     if (isAvailable) {
-      await Sharing.shareAsync(fileUri, {
+      await Sharing.shareAsync(file.uri, {
         mimeType: 'text/csv',
         dialogTitle: 'Export Protein Tracker Data',
         UTI: 'public.comma-separated-values-text',
@@ -217,16 +215,13 @@ export async function exportAsXLSX(data: ExportData): Promise<void> {
       return;
     }
 
-    const fileUri = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + fileName;
-
-    await FileSystem.writeAsStringAsync(fileUri, wbout, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    const file = new File(Paths.cache, fileName);
+    await file.write(wbout, { encoding: 'base64' });
 
     // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync();
     if (isAvailable) {
-      await Sharing.shareAsync(fileUri, {
+      await Sharing.shareAsync(file.uri, {
         mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         dialogTitle: 'Export Protein Tracker Data',
         UTI: 'org.openxmlformats.spreadsheetml.sheet',
