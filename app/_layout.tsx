@@ -92,10 +92,7 @@ export default function RootLayout() {
       <Tabs.Screen
         name="ingredients"
         options={{
-          title: 'Ingredients',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="nutrition" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
