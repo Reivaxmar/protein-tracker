@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { useState, useMemo } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
@@ -15,17 +15,35 @@ export default function HistoryScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   
+  // Validate and set date
+  const handleDateChange = (dateString: string) => {
+    // Update the input immediately for typing experience
+    setSelectedDate(dateString);
+    
+    // Validate the date format and value
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateRegex.test(dateString)) {
+      const date = new Date(dateString);
+      // Check if date is valid (not NaN) and matches the input
+      if (!isNaN(date.getTime()) && date.toISOString().split('T')[0] === dateString) {
+        // Date is valid, it will be used by the views
+        return;
+      }
+    }
+    // Invalid date, but we keep the input as-is for user to correct
+  };
+  
   // Get dates for weekly view (Monday to Sunday)
   const getWeekDates = (dateString: string) => {
     const date = new Date(dateString);
     const day = date.getDay();
     const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
-    const monday = new Date(date.setDate(diff));
+    const monday = new Date(date);
+    monday.setDate(diff);
     
     const weekDates: string[] = [];
     for (let i = 0; i < 7; i++) {
-      const currentDate = new Date(monday);
-      currentDate.setDate(monday.getDate() + i);
+      const currentDate = new Date(monday.getTime() + i * 24 * 60 * 60 * 1000);
       weekDates.push(currentDate.toISOString().split('T')[0]);
     }
     return weekDates;
@@ -365,7 +383,7 @@ export default function HistoryScreen() {
             <TextInput
               style={styles.dateInput}
               value={selectedDate}
-              onChangeText={setSelectedDate}
+              onChangeText={handleDateChange}
               placeholder="YYYY-MM-DD"
             />
           </View>
