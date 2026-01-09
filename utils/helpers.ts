@@ -25,3 +25,8 @@ export const formatProtein = (protein: number) => {
   // Format to 2 decimals, then remove trailing zeros
   return `${parseFloat(protein.toFixed(2))}g`;
 };
+
+// Format a number to up to 2 decimals, removing trailing zeros
+export const formatNumber = (num: number, decimals: number = 2) => {
+  return parseFloat(num.toFixed(decimals));
+};

@@ -3,7 +3,7 @@ import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
 import { useTagStore } from '../store/tagStore';
-import { generateUniqueId, getTodayDateString } from '../utils/helpers';
+import { generateUniqueId, getTodayDateString, formatNumber } from '../utils/helpers';
 import { CustomIngredient } from '../types';
 import { useRouter } from 'expo-router';
 
@@ -298,7 +298,7 @@ export default function CalculateAmountsScreen() {
           <View style={styles.infoBox}>
             <Text style={styles.infoLabel}>{t.calculator.yourStatus}</Text>
             <Text style={styles.infoText}>
-              {t.calculator.dailyLimit} {targetProtein}g • {t.calculator.consumed} {totalProteinToday.toFixed(1)}g • {t.calculator.remaining} {Math.max(0, targetProtein - totalProteinToday).toFixed(1)}g
+              {t.calculator.dailyLimit} {targetProtein}g • {t.calculator.consumed} {formatNumber(totalProteinToday)}g • {t.calculator.remaining} {formatNumber(Math.max(0, targetProtein - totalProteinToday))}g
             </Text>
           </View>
 
@@ -339,7 +339,7 @@ export default function CalculateAmountsScreen() {
                         {ingredient.proteinPer100g}g protein/100g
                       </Text>
                       <Text style={styles.ingredientRatioDisplay}>
-                        Grams Ratio: {ingredientRatios[index]?.toFixed(1) || 0}%
+                        Grams Ratio: {formatNumber(ingredientRatios[index] || 0)}%
                       </Text>
                     </View>
                     <TouchableOpacity
@@ -429,14 +429,14 @@ export default function CalculateAmountsScreen() {
                 <View key={item.id} style={styles.resultItem}>
                   <View style={styles.resultHeader}>
                     <Text style={styles.resultName}>{item.name}</Text>
-                    <Text style={styles.resultGrams}>{item.gramsNeeded.toFixed(1)}g</Text>
+                    <Text style={styles.resultGrams}>{formatNumber(item.gramsNeeded)}g</Text>
                   </View>
                   <View style={styles.resultDetails}>
                     <Text style={styles.resultDetailText}>
-                      Provides: {item.proteinAmount.toFixed(1)}g protein
+                      Provides: {formatNumber(item.proteinAmount)}g protein
                     </Text>
                     <Text style={styles.resultDetailText}>
-                      ({((item.ratio / totalRatio) * 100).toFixed(1)}% of total)
+                      ({formatNumber((item.ratio / totalRatio) * 100)}% of total)
                     </Text>
                   </View>
                 </View>
@@ -446,11 +446,11 @@ export default function CalculateAmountsScreen() {
             <View style={styles.totalSummary}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>{t.calculator.totalGrams}</Text>
-                <Text style={styles.summaryValue}>{totalGramsCheck.toFixed(1)}g</Text>
+                <Text style={styles.summaryValue}>{formatNumber(totalGramsCheck)}g</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>{t.calculator.totalProtein}</Text>
-                <Text style={styles.summaryValueProtein}>{totalProteinCheck.toFixed(1)}g</Text>
+                <Text style={styles.summaryValueProtein}>{formatNumber(totalProteinCheck)}g</Text>
               </View>
             </View>
 
@@ -501,7 +501,7 @@ export default function CalculateAmountsScreen() {
                       >
                         <Text style={styles.savedIngredientName}>{ingredient.name}</Text>
                         <Text style={styles.savedIngredientProtein}>
-                          {ingredient.proteinPer100g.toFixed(1)}g/100g
+                          {formatNumber(ingredient.proteinPer100g)}g/100g
                         </Text>
                       </TouchableOpacity>
                     ))}
@@ -621,11 +621,11 @@ export default function CalculateAmountsScreen() {
                 <Text style={styles.mealSummaryTitle}>{t.calculator.mealSummaryTitle}</Text>
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>{t.calculator.totalProtein}</Text>
-                  <Text style={styles.summaryValueProtein}>{totalProteinCheck.toFixed(1)}g</Text>
+                  <Text style={styles.summaryValueProtein}>{formatNumber(totalProteinCheck)}g</Text>
                 </View>
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>{t.calculator.totalGrams}</Text>
-                  <Text style={styles.summaryValue}>{totalGramsCheck.toFixed(1)}g</Text>
+                  <Text style={styles.summaryValue}>{formatNumber(totalGramsCheck)}g</Text>
                 </View>
               </View>
 

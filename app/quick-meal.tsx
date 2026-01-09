@@ -4,7 +4,7 @@ import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
 import { useTagStore } from '../store/tagStore';
 import { searchProducts, OpenFoodFactsProduct, fetchProductByBarcode, ProductSearchFilters } from '../utils/api';
-import { getTodayDateString, generateUniqueId } from '../utils/helpers';
+import { getTodayDateString, generateUniqueId, formatNumber } from '../utils/helpers';
 import { useRouter } from 'expo-router';
 import { CameraView, Camera } from 'expo-camera';
 
@@ -70,7 +70,7 @@ export default function QuickMealScreen() {
     if (isNaN(grams) || grams <= 0) {
       return null;
     }
-    return ((selectedProduct.nutriments.proteins_100g * grams) / 100).toFixed(1);
+    return formatNumber((selectedProduct.nutriments.proteins_100g * grams) / 100);
   }, [gramsForIngredient, selectedProduct]);
 
   const handleBarcodeScanned = async (barcode: string) => {
@@ -309,7 +309,7 @@ export default function QuickMealScreen() {
       tag: selectedTag || undefined,
     });
 
-    Alert.alert(t.success, `${t.quickMeal.mealLogged} ${totalProtein.toFixed(1)}g protein added.`, [
+    Alert.alert(t.success, `${t.quickMeal.mealLogged} ${formatNumber(totalProtein)}g protein added.`, [
       {
         text: t.quickMeal.viewHome,
         onPress: () => {
@@ -428,7 +428,7 @@ export default function QuickMealScreen() {
                       styles.savedIngredientChipProtein,
                       selectedSavedIngredient === ingredient.id && styles.savedIngredientChipProteinActive
                     ]}>
-                      {ingredient.proteinPer100g.toFixed(1)}g/100g
+                      {formatNumber(ingredient.proteinPer100g)}g/100g
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -453,7 +453,7 @@ export default function QuickMealScreen() {
                         {(() => {
                           const savedIng = customIngredients.find(i => i.id === selectedSavedIngredient);
                           if (savedIng) {
-                            return ((savedIng.proteinPer100g * parseFloat(savedIngredientGrams)) / 100).toFixed(1);
+                            return formatNumber((savedIng.proteinPer100g * parseFloat(savedIngredientGrams)) / 100);
                           }
                           return '0';
                         })()}g
@@ -534,7 +534,7 @@ export default function QuickMealScreen() {
                     )}
                     {product.nutriments?.proteins_100g !== undefined && (
                       <Text style={styles.resultProtein}>
-                        Protein: {product.nutriments.proteins_100g.toFixed(1)}g/100g
+                        Protein: {formatNumber(product.nutriments.proteins_100g)}g/100g
                       </Text>
                     )}
                   </View>
@@ -551,7 +551,7 @@ export default function QuickMealScreen() {
               </Text>
               {selectedProduct.nutriments?.proteins_100g !== undefined && (
                 <Text style={styles.selectedProductProtein}>
-                  Protein: {selectedProduct.nutriments.proteins_100g.toFixed(1)}g/100g
+                  Protein: {formatNumber(selectedProduct.nutriments.proteins_100g)}g/100g
                 </Text>
               )}
               
@@ -609,7 +609,7 @@ export default function QuickMealScreen() {
                 </View>
                 <View style={styles.ingredientRight}>
                   <Text style={styles.ingredientProtein}>
-                    {ingredient.totalProtein.toFixed(1)}g
+                    {formatNumber(ingredient.totalProtein)}g
                   </Text>
                   <TouchableOpacity
                     onPress={() => handleRemoveIngredient(ingredient.id)}
@@ -624,7 +624,7 @@ export default function QuickMealScreen() {
               <Text style={styles.totalLabel}>{t.quickMeal.totalMeal}</Text>
               <View>
                 <Text style={styles.totalValue}>
-                  {calculateTotalProtein().toFixed(1)}g protein
+                  {formatNumber(calculateTotalProtein())}g protein
                 </Text>
                 <Text style={styles.totalGrams}>
                   {calculateTotalGrams()}g total
@@ -745,9 +745,9 @@ export default function QuickMealScreen() {
                     const protein = parseFloat(customIngredientProtein || '0');
                     const grams = parseFloat(customIngredientGrams || '0');
                     if (isNaN(protein) || isNaN(grams) || protein < 0 || grams <= 0) {
-                      return '0.0g';
+                      return '0g';
                     }
-                    return `${((protein * grams) / 100).toFixed(1)}g`;
+                    return `${formatNumber((protein * grams) / 100)}g`;
                   })()}
                 </Text>
               </View>
