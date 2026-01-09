@@ -242,7 +242,7 @@ export default function CalculateAmountsScreen() {
 
   const handleConfirmLogMeal = () => {
     if (!mealName.trim()) {
-      Alert.alert(t.error, t.calculator.mealNameLabel + ' is required');
+      Alert.alert(t.error, t.calculator.mealNameRequired);
       return;
     }
 
@@ -617,7 +617,7 @@ export default function CalculateAmountsScreen() {
               </View>
 
               <View style={styles.mealSummaryBox}>
-                <Text style={styles.mealSummaryTitle}>Meal Summary</Text>
+                <Text style={styles.mealSummaryTitle}>{t.calculator.mealSummaryTitle}</Text>
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>{t.calculator.totalProtein}</Text>
                   <Text style={styles.summaryValueProtein}>{totalProteinCheck.toFixed(1)}g</Text>

@@ -216,6 +216,8 @@ export interface Translations {
     mealLogged: string;
     noIngredientsToLog: string;
     noCalculatedAmounts: string;
+    mealNameRequired: string;
+    mealSummaryTitle: string;
   };
   
   // Food Categories
@@ -473,6 +475,8 @@ export const translations: Record<Language, Translations> = {
       mealLogged: 'Meal logged successfully!',
       noIngredientsToLog: 'Please add ingredients before logging',
       noCalculatedAmounts: 'Please set protein amount to see calculations',
+      mealNameRequired: 'Meal name is required',
+      mealSummaryTitle: 'Meal Summary',
     },
     
     // Food Categories
@@ -728,6 +732,8 @@ export const translations: Record<Language, Translations> = {
       mealLogged: '¡Comida registrada con éxito!',
       noIngredientsToLog: 'Por favor, añade ingredientes antes de registrar',
       noCalculatedAmounts: 'Por favor, establece la cantidad de proteína para ver los cálculos',
+      mealNameRequired: 'El nombre de la comida es obligatorio',
+      mealSummaryTitle: 'Resumen de la Comida',
     },
     
     // Categorías de Alimentos
