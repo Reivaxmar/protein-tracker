@@ -78,6 +78,15 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
+        name="history"
+        options={{
+          title: translations.nav.history,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="meals"
         options={{
           title: translations.nav.meals,

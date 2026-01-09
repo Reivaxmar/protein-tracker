@@ -19,6 +19,7 @@ export interface Translations {
     quickMeal: string;
     calculator: string;
     settings: string;
+    history: string;
   };
   
   // Home Screen
@@ -220,6 +221,31 @@ export interface Translations {
     grains: string;
     legumes: string;
   };
+  
+  // History Screen
+  history: {
+    title: string;
+    subtitle: string;
+    selectDate: string;
+    daily: string;
+    weekly: string;
+    monthly: string;
+    noDataForDate: string;
+    noDataForWeek: string;
+    noDataForMonth: string;
+    meals: string;
+    meal: string;
+    totalProtein: string;
+    target: string;
+    average: string;
+    daysTracked: string;
+    selectADate: string;
+    weekOf: string;
+    monthOf: string;
+    dayLabel: string;
+    consumed: string;
+    fromTarget: string;
+  };
 }
 
 export const translations: Record<Language, Translations> = {
@@ -242,6 +268,7 @@ export const translations: Record<Language, Translations> = {
       quickMeal: 'Quick Meal',
       calculator: 'Calculator',
       settings: 'Settings',
+      history: 'History',
     },
     
     // Home Screen
@@ -443,6 +470,31 @@ export const translations: Record<Language, Translations> = {
       grains: 'Grains',
       legumes: 'Legumes',
     },
+    
+    // History Screen
+    history: {
+      title: 'History',
+      subtitle: 'View your past protein intake',
+      selectDate: 'Select Date',
+      daily: 'Daily',
+      weekly: 'Weekly',
+      monthly: 'Monthly',
+      noDataForDate: 'No meals logged on this date',
+      noDataForWeek: 'No data available for this week',
+      noDataForMonth: 'No data available for this month',
+      meals: 'Meals',
+      meal: 'meal',
+      totalProtein: 'Total Protein',
+      target: 'Target',
+      average: 'Average',
+      daysTracked: 'Days Tracked',
+      selectADate: 'Select a date to view meals',
+      weekOf: 'Week of',
+      monthOf: 'Month of',
+      dayLabel: 'Day',
+      consumed: 'Consumed',
+      fromTarget: 'from target',
+    },
   },
   es: {
     // Común
@@ -463,6 +515,7 @@ export const translations: Record<Language, Translations> = {
       quickMeal: 'Comida Rápida',
       calculator: 'Calculadora',
       settings: 'Configuración',
+      history: 'Historial',
     },
     
     // Pantalla de Inicio
@@ -663,6 +716,31 @@ export const translations: Record<Language, Translations> = {
       fruits: 'Frutas',
       grains: 'Cereales',
       legumes: 'Legumbres',
+    },
+    
+    // Pantalla de Historial
+    history: {
+      title: 'Historial',
+      subtitle: 'Ver tu consumo de proteínas pasado',
+      selectDate: 'Seleccionar Fecha',
+      daily: 'Diario',
+      weekly: 'Semanal',
+      monthly: 'Mensual',
+      noDataForDate: 'No hay comidas registradas en esta fecha',
+      noDataForWeek: 'No hay datos disponibles para esta semana',
+      noDataForMonth: 'No hay datos disponibles para este mes',
+      meals: 'Comidas',
+      meal: 'comida',
+      totalProtein: 'Proteína Total',
+      target: 'Objetivo',
+      average: 'Promedio',
+      daysTracked: 'Días Registrados',
+      selectADate: 'Selecciona una fecha para ver las comidas',
+      weekOf: 'Semana del',
+      monthOf: 'Mes de',
+      dayLabel: 'Día',
+      consumed: 'Consumido',
+      fromTarget: 'del objetivo',
     },
   },
 };

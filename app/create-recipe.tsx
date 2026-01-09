@@ -678,15 +678,19 @@ export default function CreateRecipeScreen() {
                 />
               </View>
 
-              {customIngredientProtein && customIngredientGrams && 
-               parseFloat(customIngredientProtein) >= 0 && parseFloat(customIngredientGrams) > 0 && (
-                <View style={styles.calculatedProtein}>
-                  <Text style={styles.calculatedLabel}>{t.createRecipe.totalProtein}</Text>
-                  <Text style={styles.calculatedValue}>
-                    {((parseFloat(customIngredientProtein) * parseFloat(customIngredientGrams)) / 100).toFixed(1)}g
-                  </Text>
-                </View>
-              )}
+              <View style={styles.calculatedProtein}>
+                <Text style={styles.calculatedLabel}>{t.createRecipe.totalProtein}</Text>
+                <Text style={styles.calculatedValue}>
+                  {(() => {
+                    const protein = parseFloat(customIngredientProtein || '0');
+                    const grams = parseFloat(customIngredientGrams || '0');
+                    if (isNaN(protein) || isNaN(grams) || protein < 0 || grams <= 0) {
+                      return '0.0g';
+                    }
+                    return `${((protein * grams) / 100).toFixed(1)}g`;
+                  })()}
+                </Text>
+              </View>
 
               <TouchableOpacity
                 style={styles.addIngredientButton}
