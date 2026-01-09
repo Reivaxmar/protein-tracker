@@ -6,7 +6,11 @@ import { useTagStore } from '../store/tagStore';
 import { Recipe } from '../types';
 import { useRouter } from 'expo-router';
 
-export default function RecipesScreen() {
+interface RecipesScreenProps {
+  onNavigateToCreate?: () => void;
+}
+
+export default function RecipesScreen({ onNavigateToCreate }: RecipesScreenProps = {}) {
   const recipes = useProteinStore((state) => state.recipes);
   const deleteRecipe = useProteinStore((state) => state.deleteRecipe);
   const updateRecipe = useProteinStore((state) => state.updateRecipe);
@@ -154,7 +158,7 @@ export default function RecipesScreen() {
             </Text>
             <TouchableOpacity
               style={styles.createButton}
-              onPress={() => router.push('/create-recipe')}
+              onPress={() => onNavigateToCreate ? onNavigateToCreate() : router.push('/create-recipe')}
             >
               <Text style={styles.createButtonText}>{t.recipes.createRecipe}</Text>
             </TouchableOpacity>
@@ -320,7 +324,7 @@ export default function RecipesScreen() {
 
         <TouchableOpacity
           style={styles.addRecipeButton}
-          onPress={() => router.push('/create-recipe')}
+          onPress={() => onNavigateToCreate ? onNavigateToCreate() : router.push('/create-recipe')}
         >
           <Text style={styles.addRecipeButtonText}>+ {t.recipes.createRecipe}</Text>
         </TouchableOpacity>

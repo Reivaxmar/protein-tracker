@@ -15,7 +15,7 @@ export default function MealsScreen() {
   const renderContent = () => {
     switch (activeTab) {
       case 'recipes':
-        return <RecipesScreen />;
+        return <RecipesScreen onNavigateToCreate={() => setActiveTab('create')} />;
       case 'create':
         return <CreateRecipeScreen />;
       case 'quick':
@@ -23,7 +23,7 @@ export default function MealsScreen() {
       case 'ingredients':
         return <IngredientsScreen />;
       default:
-        return <RecipesScreen />;
+        return <RecipesScreen onNavigateToCreate={() => setActiveTab('create')} />;
     }
   };
 
