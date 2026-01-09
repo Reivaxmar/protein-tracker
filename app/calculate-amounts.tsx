@@ -2,8 +2,10 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
-import { generateUniqueId, getTodayDateString } from '../utils/helpers';
+import { useTagStore } from '../store/tagStore';
+import { generateUniqueId, getTodayDateString, formatNumber } from '../utils/helpers';
 import { CustomIngredient } from '../types';
+import { useRouter } from 'expo-router';
 
 interface CalculatorIngredient {
   id: string;
@@ -12,14 +14,21 @@ interface CalculatorIngredient {
 }
 
 export default function CalculateAmountsScreen() {
+  const router = useRouter();
   const t = useLanguageStore((state) => state.translations);
   const customIngredients = useProteinStore((state) => state.customIngredients);
+  const addMeal = useProteinStore((state) => state.addMeal);
+  const tags = useTagStore((state) => state.tags);
+  
   const [ingredients, setIngredients] = useState<CalculatorIngredient[]>([]);
   const [sliderPoints, setSliderPoints] = useState<number[]>([]); // Positions from 0 to 100
   const [targetProteinAmount, setTargetProteinAmount] = useState('50'); // Default to 50g
   const [showAddIngredient, setShowAddIngredient] = useState(false);
   const [newIngredientName, setNewIngredientName] = useState('');
   const [newIngredientProtein, setNewIngredientProtein] = useState('');
+  const [showLogMealModal, setShowLogMealModal] = useState(false);
+  const [mealName, setMealName] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string>('');
   const sliderWrapperRef = useRef<View>(null);
   const [sliderWidth, setSliderWidth] = useState(300);
   
@@ -217,6 +226,64 @@ export default function CalculateAmountsScreen() {
     return calculatedAmounts.reduce((sum, item) => sum + item.gramsNeeded, 0);
   }, [calculatedAmounts]);
 
+  const handleLogAsMeal = () => {
+    if (ingredients.length === 0) {
+      Alert.alert(t.error, t.calculator.noIngredientsToLog);
+      return;
+    }
+
+    if (calculatedAmounts.length === 0) {
+      Alert.alert(t.error, t.calculator.noCalculatedAmounts);
+      return;
+    }
+
+    setShowLogMealModal(true);
+  };
+
+  const handleConfirmLogMeal = () => {
+    if (!mealName.trim()) {
+      Alert.alert(t.error, t.calculator.mealNameRequired);
+      return;
+    }
+
+    const totalGrams = totalGramsCheck;
+    const totalProtein = totalProteinCheck;
+    const proteinPer100g = totalGrams > 0 ? (totalProtein / totalGrams) * 100 : 0;
+
+    addMeal({
+      name: mealName.trim(),
+      proteinPer100g,
+      gramsEaten: totalGrams,
+      date: getTodayDateString(),
+      tag: selectedTag || undefined,
+    });
+
+    // Close the modal immediately
+    setShowLogMealModal(false);
+
+    Alert.alert(t.success, t.calculator.mealLogged, [
+      {
+        text: t.quickMeal?.viewHome || 'View Home',
+        onPress: () => {
+          setIngredients([]);
+          setSliderPoints([]);
+          setMealName('');
+          setSelectedTag('');
+          router.push('/');
+        },
+      },
+      {
+        text: t.quickMeal?.addAnother || 'Add Another',
+        onPress: () => {
+          setIngredients([]);
+          setSliderPoints([]);
+          setMealName('');
+          setSelectedTag('');
+        },
+      },
+    ]);
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
@@ -231,7 +298,7 @@ export default function CalculateAmountsScreen() {
           <View style={styles.infoBox}>
             <Text style={styles.infoLabel}>{t.calculator.yourStatus}</Text>
             <Text style={styles.infoText}>
-              {t.calculator.dailyLimit} {targetProtein}g • {t.calculator.consumed} {totalProteinToday.toFixed(1)}g • {t.calculator.remaining} {Math.max(0, targetProtein - totalProteinToday).toFixed(1)}g
+              {t.calculator.dailyLimit} {targetProtein}g • {t.calculator.consumed} {formatNumber(totalProteinToday)}g • {t.calculator.remaining} {formatNumber(Math.max(0, targetProtein - totalProteinToday))}g
             </Text>
           </View>
 
@@ -272,7 +339,7 @@ export default function CalculateAmountsScreen() {
                         {ingredient.proteinPer100g}g protein/100g
                       </Text>
                       <Text style={styles.ingredientRatioDisplay}>
-                        Grams Ratio: {ingredientRatios[index]?.toFixed(1) || 0}%
+                        Grams Ratio: {formatNumber(ingredientRatios[index] || 0)}%
                       </Text>
                     </View>
                     <TouchableOpacity
@@ -362,14 +429,14 @@ export default function CalculateAmountsScreen() {
                 <View key={item.id} style={styles.resultItem}>
                   <View style={styles.resultHeader}>
                     <Text style={styles.resultName}>{item.name}</Text>
-                    <Text style={styles.resultGrams}>{item.gramsNeeded.toFixed(1)}g</Text>
+                    <Text style={styles.resultGrams}>{formatNumber(item.gramsNeeded)}g</Text>
                   </View>
                   <View style={styles.resultDetails}>
                     <Text style={styles.resultDetailText}>
-                      Provides: {item.proteinAmount.toFixed(1)}g protein
+                      Provides: {formatNumber(item.proteinAmount)}g protein
                     </Text>
                     <Text style={styles.resultDetailText}>
-                      ({((item.ratio / totalRatio) * 100).toFixed(1)}% of total)
+                      ({formatNumber((item.ratio / totalRatio) * 100)}% of total)
                     </Text>
                   </View>
                 </View>
@@ -379,13 +446,20 @@ export default function CalculateAmountsScreen() {
             <View style={styles.totalSummary}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>{t.calculator.totalGrams}</Text>
-                <Text style={styles.summaryValue}>{totalGramsCheck.toFixed(1)}g</Text>
+                <Text style={styles.summaryValue}>{formatNumber(totalGramsCheck)}g</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>{t.calculator.totalProtein}</Text>
-                <Text style={styles.summaryValueProtein}>{totalProteinCheck.toFixed(1)}g</Text>
+                <Text style={styles.summaryValueProtein}>{formatNumber(totalProteinCheck)}g</Text>
               </View>
             </View>
+
+            <TouchableOpacity
+              style={styles.logMealButton}
+              onPress={handleLogAsMeal}
+            >
+              <Text style={styles.logMealButtonText}>{t.calculator.logAsMeal}</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -427,7 +501,7 @@ export default function CalculateAmountsScreen() {
                       >
                         <Text style={styles.savedIngredientName}>{ingredient.name}</Text>
                         <Text style={styles.savedIngredientProtein}>
-                          {ingredient.proteinPer100g.toFixed(1)}g/100g
+                          {formatNumber(ingredient.proteinPer100g)}g/100g
                         </Text>
                       </TouchableOpacity>
                     ))}
@@ -470,6 +544,101 @@ export default function CalculateAmountsScreen() {
               <TouchableOpacity
                 style={styles.modalCancelButton}
                 onPress={() => setShowAddIngredient(false)}
+              >
+                <Text style={styles.modalCancelButtonText}>{t.cancel}</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Log as Meal Modal */}
+      <Modal
+        visible={showLogMealModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowLogMealModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t.calculator.logAsMealTitle}</Text>
+              <TouchableOpacity onPress={() => setShowLogMealModal(false)}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody}>
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>{t.calculator.mealNameLabel}</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={t.calculator.mealNamePlaceholder}
+                  value={mealName}
+                  onChangeText={setMealName}
+                  placeholderTextColor="#9ca3af"
+                />
+              </View>
+
+              <View style={styles.tagSection}>
+                <Text style={styles.tagLabel}>{t.calculator.selectTag}</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
+                  <TouchableOpacity
+                    style={[
+                      styles.tagChip,
+                      !selectedTag && styles.tagChipActive
+                    ]}
+                    onPress={() => setSelectedTag('')}
+                  >
+                    <Text style={[
+                      styles.tagChipText,
+                      !selectedTag && styles.tagChipTextActive
+                    ]}>
+                      {t.quickMeal?.tagNone || 'None'}
+                    </Text>
+                  </TouchableOpacity>
+                  {tags.map((tag) => (
+                    <TouchableOpacity
+                      key={tag}
+                      style={[
+                        styles.tagChip,
+                        selectedTag === tag && styles.tagChipActive
+                      ]}
+                      onPress={() => setSelectedTag(tag)}
+                    >
+                      <Text style={[
+                        styles.tagChipText,
+                        selectedTag === tag && styles.tagChipTextActive
+                      ]}>
+                        {tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase()}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              <View style={styles.mealSummaryBox}>
+                <Text style={styles.mealSummaryTitle}>{t.calculator.mealSummaryTitle}</Text>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>{t.calculator.totalProtein}</Text>
+                  <Text style={styles.summaryValueProtein}>{formatNumber(totalProteinCheck)}g</Text>
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>{t.calculator.totalGrams}</Text>
+                  <Text style={styles.summaryValue}>{formatNumber(totalGramsCheck)}g</Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.modalAddButton}
+                onPress={handleConfirmLogMeal}
+              >
+                <Text style={styles.modalAddButtonText}>{t.calculator.logAsMeal}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setShowLogMealModal(false)}
               >
                 <Text style={styles.modalCancelButtonText}>{t.cancel}</Text>
               </TouchableOpacity>
@@ -891,5 +1060,63 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e5e7eb',
     marginTop: 16,
+  },
+  logMealButton: {
+    backgroundColor: '#10b981',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  logMealButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  tagSection: {
+    marginBottom: 16,
+  },
+  tagLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  tagScroll: {
+    flexDirection: 'row',
+  },
+  tagChip: {
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
+  },
+  tagChipActive: {
+    backgroundColor: '#3b82f6',
+    borderColor: '#3b82f6',
+  },
+  tagChipText: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  tagChipTextActive: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  mealSummaryBox: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+  },
+  mealSummaryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e40af',
+    marginBottom: 12,
   },
 });

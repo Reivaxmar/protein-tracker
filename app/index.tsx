@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
-import { formatProtein, formatDate, getTodayDateString } from '../utils/helpers';
+import { formatProtein, formatDate, getTodayDateString, formatNumber } from '../utils/helpers';
 import { useMemo, useState } from 'react';
 
 export default function HomeScreen() {
@@ -116,7 +116,7 @@ export default function HomeScreen() {
               />
             </View>
             <Text style={styles.progressText}>
-              {percentage.toFixed(0)}% {t.home.ofDailyLimit}
+              {formatNumber(percentage, 0)}% {t.home.ofDailyLimit}
               {isOverLimit && ` (${t.home.overLimit}!)`}
             </Text>
           </View>
@@ -139,7 +139,7 @@ export default function HomeScreen() {
                     )}
                   </View>
                   <Text style={styles.mealDetails}>
-                    {meal.gramsEaten}g ({meal.proteinPer100g}{t.home.proteinPer100g})
+                    {meal.gramsEaten}g ({formatNumber(meal.proteinPer100g)}{t.home.proteinPer100g})
                   </Text>
                 </View>
                 <View style={styles.mealActions}>
@@ -181,7 +181,7 @@ export default function HomeScreen() {
                     autoFocus
                   />
                   <Text style={styles.modalCalculation}>
-                    Protein: {((editingMeal.proteinPer100g * parseFloat(editGrams || '0')) / 100).toFixed(1)}g
+                    Protein: {formatNumber((editingMeal.proteinPer100g * parseFloat(editGrams || '0')) / 100)}g
                   </Text>
                 </>
               )}
