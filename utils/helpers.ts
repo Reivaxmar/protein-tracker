@@ -22,5 +22,6 @@ export const formatDate = (dateString: string, language: Language = 'en') => {
 };
 
 export const formatProtein = (protein: number) => {
-  return `${protein.toFixed(2)}g`;
+  // Format to 2 decimals, then remove trailing zeros
+  return `${parseFloat(protein.toFixed(2))}g`;
 };
