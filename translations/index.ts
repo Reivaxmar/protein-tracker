@@ -234,6 +234,7 @@ export interface Translations {
     noDataForWeek: string;
     noDataForMonth: string;
     meals: string;
+    meal: string;
     totalProtein: string;
     target: string;
     average: string;
@@ -482,6 +483,7 @@ export const translations: Record<Language, Translations> = {
       noDataForWeek: 'No data available for this week',
       noDataForMonth: 'No data available for this month',
       meals: 'Meals',
+      meal: 'meal',
       totalProtein: 'Total Protein',
       target: 'Target',
       average: 'Average',
@@ -728,6 +730,7 @@ export const translations: Record<Language, Translations> = {
       noDataForWeek: 'No hay datos disponibles para esta semana',
       noDataForMonth: 'No hay datos disponibles para este mes',
       meals: 'Comidas',
+      meal: 'comida',
       totalProtein: 'Proteína Total',
       target: 'Objetivo',
       average: 'Promedio',

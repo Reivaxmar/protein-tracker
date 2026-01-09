@@ -232,7 +232,7 @@ export default function HistoryScreen() {
                   <View style={styles.dayDataContainer}>
                     <Text style={styles.dayProtein}>{formatProtein(data.totalProtein)}</Text>
                     <Text style={styles.dayMeals}>
-                      {data.meals.length} {data.meals.length === 1 ? 'meal' : 'meals'}
+                      {data.meals.length} {data.meals.length === 1 ? t.history.meal : t.history.meals}
                     </Text>
                   </View>
                 ) : (
@@ -301,7 +301,7 @@ export default function HistoryScreen() {
                     <View style={styles.dayDataContainer}>
                       <Text style={styles.dayProtein}>{formatProtein(data.totalProtein)}</Text>
                       <Text style={styles.dayMeals}>
-                        {data.meals.length} {data.meals.length === 1 ? 'meal' : 'meals'}
+                        {data.meals.length} {data.meals.length === 1 ? t.history.meal : t.history.meals}
                       </Text>
                     </View>
                   ) : (
