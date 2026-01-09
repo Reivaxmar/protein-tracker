@@ -20,6 +20,20 @@ export default function HistoryScreen() {
   // Helper to get locale string
   const getLocale = () => language === 'es' ? 'es-ES' : 'en-US';
   
+  // Helper to format short date
+  const formatShortDate = (date: Date) => {
+    return date.toLocaleDateString(getLocale(), { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+  
+  // Helper to get meal count text
+  const getMealCountText = (count: number) => {
+    return `${count} ${count === 1 ? t.history.meal : t.history.meals}`;
+  };
+  
   // Validate and set date
   const handleDateChange = (dateString: string) => {
     // Update the input immediately for typing experience
@@ -251,17 +265,13 @@ export default function HistoryScreen() {
                 }}
               >
                 <Text style={styles.dayDate}>
-                  {new Date(date).toLocaleDateString(getLocale(), { 
-                    weekday: 'short', 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}
+                  {formatShortDate(new Date(date))}
                 </Text>
                 {data ? (
                   <View style={styles.dayDataContainer}>
                     <Text style={styles.dayProtein}>{formatProtein(data.totalProtein)}</Text>
                     <Text style={styles.dayMeals}>
-                      {data.meals.length} {data.meals.length === 1 ? t.history.meal : t.history.meals}
+                      {getMealCountText(data.meals.length)}
                     </Text>
                   </View>
                 ) : (
@@ -320,17 +330,13 @@ export default function HistoryScreen() {
                   }}
                 >
                   <Text style={styles.dayDate}>
-                    {new Date(date).toLocaleDateString(getLocale(), { 
-                      weekday: 'short', 
-                      month: 'short', 
-                      day: 'numeric' 
-                    })}
+                    {formatShortDate(new Date(date))}
                   </Text>
                   {data ? (
                     <View style={styles.dayDataContainer}>
                       <Text style={styles.dayProtein}>{formatProtein(data.totalProtein)}</Text>
                       <Text style={styles.dayMeals}>
-                        {data.meals.length} {data.meals.length === 1 ? t.history.meal : t.history.meals}
+                        {getMealCountText(data.meals.length)}
                       </Text>
                     </View>
                   ) : (
