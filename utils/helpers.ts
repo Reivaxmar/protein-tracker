@@ -22,5 +22,5 @@ export const formatDate = (dateString: string, language: Language = 'en') => {
 };
 
 export const formatProtein = (protein: number) => {
-  return `${protein.toFixed(1)}g`;
+  return `${protein.toFixed(2)}g`;
 };

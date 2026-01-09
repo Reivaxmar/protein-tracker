@@ -258,6 +258,9 @@ export default function CalculateAmountsScreen() {
       tag: selectedTag || undefined,
     });
 
+    // Close the modal immediately
+    setShowLogMealModal(false);
+
     Alert.alert(t.success, t.calculator.mealLogged, [
       {
         text: t.quickMeal?.viewHome || 'View Home',
@@ -266,7 +269,6 @@ export default function CalculateAmountsScreen() {
           setSliderPoints([]);
           setMealName('');
           setSelectedTag('');
-          setShowLogMealModal(false);
           router.push('/');
         },
       },
@@ -277,7 +279,6 @@ export default function CalculateAmountsScreen() {
           setSliderPoints([]);
           setMealName('');
           setSelectedTag('');
-          setShowLogMealModal(false);
         },
       },
     ]);

@@ -139,7 +139,7 @@ export default function HomeScreen() {
                     )}
                   </View>
                   <Text style={styles.mealDetails}>
-                    {meal.gramsEaten}g ({meal.proteinPer100g}{t.home.proteinPer100g})
+                    {meal.gramsEaten}g ({meal.proteinPer100g.toFixed(2)}{t.home.proteinPer100g})
                   </Text>
                 </View>
                 <View style={styles.mealActions}>
