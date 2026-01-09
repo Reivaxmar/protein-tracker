@@ -208,6 +208,14 @@ export interface Translations {
     ingredientName: string;
     ratiosWillBeSet: string;
     ingredientAdded: string;
+    logAsMeal: string;
+    logAsMealTitle: string;
+    mealNameLabel: string;
+    mealNamePlaceholder: string;
+    selectTag: string;
+    mealLogged: string;
+    noIngredientsToLog: string;
+    noCalculatedAmounts: string;
   };
   
   // Food Categories
@@ -457,6 +465,14 @@ export const translations: Record<Language, Translations> = {
       ingredientName: 'Ingredient Name',
       ratiosWillBeSet: 'Ratios will be set using the slider after adding',
       ingredientAdded: 'Ingredient added',
+      logAsMeal: 'Log as Meal',
+      logAsMealTitle: 'Log Calculator Meal',
+      mealNameLabel: 'Meal Name',
+      mealNamePlaceholder: 'e.g., Balanced Protein Bowl',
+      selectTag: 'Select Tag (Optional)',
+      mealLogged: 'Meal logged successfully!',
+      noIngredientsToLog: 'Please add ingredients before logging',
+      noCalculatedAmounts: 'Please set protein amount to see calculations',
     },
     
     // Food Categories
@@ -704,6 +720,14 @@ export const translations: Record<Language, Translations> = {
       ingredientName: 'Nombre del Ingrediente',
       ratiosWillBeSet: 'Las proporciones se establecerán usando el control deslizante después de añadir',
       ingredientAdded: 'Ingrediente añadido',
+      logAsMeal: 'Registrar como Comida',
+      logAsMealTitle: 'Registrar Comida de Calculadora',
+      mealNameLabel: 'Nombre de la Comida',
+      mealNamePlaceholder: 'p. ej., Bowl de Proteína Balanceado',
+      selectTag: 'Seleccionar Etiqueta (Opcional)',
+      mealLogged: '¡Comida registrada con éxito!',
+      noIngredientsToLog: 'Por favor, añade ingredientes antes de registrar',
+      noCalculatedAmounts: 'Por favor, establece la cantidad de proteína para ver los cálculos',
     },
     
     // Categorías de Alimentos
