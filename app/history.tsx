@@ -6,6 +6,8 @@ import { formatProtein, formatDate } from '../utils/helpers';
 
 type ViewMode = 'daily' | 'weekly' | 'monthly';
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
 export default function HistoryScreen() {
   const t = useLanguageStore((state) => state.translations);
   const language = useLanguageStore((state) => state.language);
@@ -14,6 +16,9 @@ export default function HistoryScreen() {
   
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  
+  // Helper to get locale string
+  const getLocale = () => language === 'es' ? 'es-ES' : 'en-US';
   
   // Validate and set date
   const handleDateChange = (dateString: string) => {
@@ -43,7 +48,7 @@ export default function HistoryScreen() {
     
     const weekDates: string[] = [];
     for (let i = 0; i < 7; i++) {
-      const currentDate = new Date(monday.getTime() + i * 24 * 60 * 60 * 1000);
+      const currentDate = new Date(monday.getTime() + i * MS_PER_DAY);
       weekDates.push(currentDate.toISOString().split('T')[0]);
     }
     return weekDates;
@@ -67,17 +72,23 @@ export default function HistoryScreen() {
   
   // Navigate to previous/next date period
   const navigateDate = (direction: 'prev' | 'next') => {
-    const date = new Date(selectedDate);
+    const currentDate = new Date(selectedDate);
+    let newDate: Date;
     
     if (viewMode === 'daily') {
-      date.setDate(date.getDate() + (direction === 'next' ? 1 : -1));
+      const daysToAdd = direction === 'next' ? 1 : -1;
+      newDate = new Date(currentDate.getTime() + daysToAdd * MS_PER_DAY);
     } else if (viewMode === 'weekly') {
-      date.setDate(date.getDate() + (direction === 'next' ? 7 : -7));
+      const daysToAdd = direction === 'next' ? 7 : -7;
+      newDate = new Date(currentDate.getTime() + daysToAdd * MS_PER_DAY);
     } else if (viewMode === 'monthly') {
-      date.setMonth(date.getMonth() + (direction === 'next' ? 1 : -1));
+      newDate = new Date(currentDate);
+      newDate.setMonth(currentDate.getMonth() + (direction === 'next' ? 1 : -1));
+    } else {
+      newDate = currentDate;
     }
     
-    setSelectedDate(date.toISOString().split('T')[0]);
+    setSelectedDate(newDate.toISOString().split('T')[0]);
   };
   
   // Calculate weekly aggregated data
@@ -135,7 +146,7 @@ export default function HistoryScreen() {
       averageProtein,
       daysTracked: daysWithData.length,
       dailyBreakdown,
-      monthName: new Date(selectedDate).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', { 
+      monthName: new Date(selectedDate).toLocaleDateString(getLocale(), { 
         month: 'long', 
         year: 'numeric' 
       }),
@@ -240,7 +251,7 @@ export default function HistoryScreen() {
                 }}
               >
                 <Text style={styles.dayDate}>
-                  {new Date(date).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', { 
+                  {new Date(date).toLocaleDateString(getLocale(), { 
                     weekday: 'short', 
                     month: 'short', 
                     day: 'numeric' 
@@ -309,7 +320,7 @@ export default function HistoryScreen() {
                   }}
                 >
                   <Text style={styles.dayDate}>
-                    {new Date(date).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', { 
+                    {new Date(date).toLocaleDateString(getLocale(), { 
                       weekday: 'short', 
                       month: 'short', 
                       day: 'numeric' 
@@ -461,13 +472,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
-    gap: 12,
   },
   navButton: {
     backgroundColor: '#ffffff',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 12,
+    marginHorizontal: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -564,13 +575,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: 8,
     marginBottom: 4,
   },
   mealName: {
     fontSize: 16,
     fontWeight: '500',
     color: '#1f2937',
+    marginRight: 8,
   },
   mealTag: {
     backgroundColor: '#dbeafe',
@@ -616,12 +627,12 @@ const styles = StyleSheet.create({
   dayDataContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
   },
   dayProtein: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#3b82f6',
+    marginRight: 12,
   },
   dayMeals: {
     fontSize: 12,
