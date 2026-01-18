@@ -27,6 +27,7 @@ export default function RecipesScreen({ onNavigateToCreate }: RecipesScreenProps
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [editRecipeName, setEditRecipeName] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleDeleteRecipe = (recipeId: string, recipeName: string) => {
     Alert.alert(
@@ -146,6 +147,10 @@ export default function RecipesScreen({ onNavigateToCreate }: RecipesScreenProps
     setExpandedRecipe(expandedRecipe === recipeId ? null : recipeId);
   };
 
+  const filteredRecipes = recipes.filter(recipe =>
+    recipe.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (recipes.length === 0) {
     return (
       <View style={styles.container}>
@@ -251,7 +256,24 @@ export default function RecipesScreen({ onNavigateToCreate }: RecipesScreenProps
           </Text>
         </View>
 
-        {recipes.map((recipe) => {
+        <TouchableOpacity
+          style={styles.addRecipeButton}
+          onPress={() => onNavigateToCreate ? onNavigateToCreate() : router.push('/create-recipe')}
+        >
+          <Text style={styles.addRecipeButtonText}>+ {t.recipes.createRecipe}</Text>
+        </TouchableOpacity>
+
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search recipes by name..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor="#9ca3af"
+          />
+        </View>
+
+        {filteredRecipes.map((recipe) => {
           const isExpanded = expandedRecipe === recipe.id;
           return (
             <View key={recipe.id} style={styles.recipeCard}>
@@ -322,12 +344,12 @@ export default function RecipesScreen({ onNavigateToCreate }: RecipesScreenProps
           );
         })}
 
-        <TouchableOpacity
-          style={styles.addRecipeButton}
-          onPress={() => onNavigateToCreate ? onNavigateToCreate() : router.push('/create-recipe')}
-        >
-          <Text style={styles.addRecipeButtonText}>+ {t.recipes.createRecipe}</Text>
-        </TouchableOpacity>
+        {filteredRecipes.length === 0 && recipes.length > 0 && (
+          <View style={styles.noResultsCard}>
+            <Text style={styles.noResultsIcon}>🔍</Text>
+            <Text style={styles.noResultsText}>No recipes found matching "{searchQuery}"</Text>
+          </View>
+        )}
 
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>{t.recipes.quickTip}</Text>
@@ -420,6 +442,40 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  searchInput: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#1f2937',
+  },
+  noResultsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  noResultsIcon: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
   },
   emptyCard: {
     backgroundColor: '#ffffff',
