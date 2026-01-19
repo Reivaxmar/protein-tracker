@@ -16,6 +16,7 @@ export default function IngredientsScreen() {
   const [editingIngredient, setEditingIngredient] = useState<CustomIngredient | null>(null);
   const [ingredientName, setIngredientName] = useState('');
   const [ingredientProtein, setIngredientProtein] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleAddIngredient = () => {
     if (!ingredientName.trim()) {
@@ -97,6 +98,10 @@ export default function IngredientsScreen() {
     setIngredientProtein('');
     setShowAddModal(true);
   };
+
+  const filteredIngredients = customIngredients.filter(ingredient =>
+    ingredient.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (customIngredients.length === 0) {
     return (
@@ -231,7 +236,24 @@ export default function IngredientsScreen() {
           </Text>
         </View>
 
-        {customIngredients.map((ingredient) => (
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={openAddModal}
+        >
+          <Text style={styles.addButtonText}>+ Create Ingredient</Text>
+        </TouchableOpacity>
+
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search ingredients by name..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor="#9ca3af"
+          />
+        </View>
+
+        {filteredIngredients.map((ingredient) => (
           <View key={ingredient.id} style={styles.ingredientCard}>
             <View style={styles.ingredientInfo}>
               <Text style={styles.ingredientName}>{ingredient.name}</Text>
@@ -256,12 +278,12 @@ export default function IngredientsScreen() {
           </View>
         ))}
 
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={openAddModal}
-        >
-          <Text style={styles.addButtonText}>+ Create Ingredient</Text>
-        </TouchableOpacity>
+        {filteredIngredients.length === 0 && customIngredients.length > 0 && (
+          <View style={styles.noResultsCard}>
+            <Text style={styles.noResultsIcon}>🔍</Text>
+            <Text style={styles.noResultsText}>No ingredients found matching "{searchQuery}"</Text>
+          </View>
+        )}
 
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>💡 About Custom Ingredients</Text>
@@ -396,6 +418,40 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  searchInput: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#1f2937',
+  },
+  noResultsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  noResultsIcon: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
   },
   emptyCard: {
     backgroundColor: '#ffffff',
