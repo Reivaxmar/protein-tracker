@@ -155,6 +155,10 @@ export interface Translations {
     filters: string;
     scanBarcode: string;
     addCustomIngredient: string;
+    addQuickIngredient: string;
+    selectSavedIngredient: string;
+    searchSavedIngredients: string;
+    noSavedIngredients: string;
     category: string;
     minProtein: string;
     brand: string;
@@ -169,6 +173,7 @@ export interface Translations {
     tips: string;
     tipsText: string;
     customIngredientTitle: string;
+    quickIngredientTitle: string;
     ingredientName: string;
     proteinPer100g: string;
     totalProtein: string;
@@ -414,6 +419,10 @@ export const translations: Record<Language, Translations> = {
       filters: 'Filters',
       scanBarcode: '📷 Scan Barcode',
       addCustomIngredient: '➕ Add Custom Ingredient',
+      addQuickIngredient: '⚡ Add Quick Ingredient',
+      selectSavedIngredient: 'Select a Saved Ingredient',
+      searchSavedIngredients: 'Search saved ingredients...',
+      noSavedIngredients: 'No saved ingredients found',
       category: 'Category',
       minProtein: 'Minimum Protein (g/100g)',
       brand: 'Brand / Manufacturer',
@@ -428,6 +437,7 @@ export const translations: Record<Language, Translations> = {
       tips: '💡 Tips',
       tipsText: '• Search for ingredients by name\n• Use filters to narrow down results (category, brand, protein)\n• Scan barcodes to quickly add packaged foods\n• Add custom ingredients with your own protein values\n• Add multiple ingredients to build your recipe\n• Once saved, you can quickly log the recipe as a meal',
       customIngredientTitle: 'Add Custom Ingredient',
+      quickIngredientTitle: 'Add Quick Ingredient',
       ingredientName: 'Ingredient Name',
       proteinPer100g: 'Protein per 100g',
       totalProtein: 'Total Protein:',
@@ -671,6 +681,10 @@ export const translations: Record<Language, Translations> = {
       filters: 'Filtros',
       scanBarcode: '📷 Escanear Código de Barras',
       addCustomIngredient: '➕ Añadir Ingrediente Personalizado',
+      addQuickIngredient: '⚡ Añadir Ingrediente Rápido',
+      selectSavedIngredient: 'Seleccionar un Ingrediente Guardado',
+      searchSavedIngredients: 'Buscar ingredientes guardados...',
+      noSavedIngredients: 'No se encontraron ingredientes guardados',
       category: 'Categoría',
       minProtein: 'Proteína Mínima (g/100g)',
       brand: 'Marca / Fabricante',
@@ -685,6 +699,7 @@ export const translations: Record<Language, Translations> = {
       tips: '💡 Consejos',
       tipsText: '• Busca ingredientes por nombre\n• Usa filtros para acotar resultados (categoría, marca, proteína)\n• Escanea códigos de barras para añadir alimentos envasados rápidamente\n• Añade ingredientes personalizados con tus propios valores de proteína\n• Añade varios ingredientes para construir tu receta\n• Una vez guardada, puedes registrar rápidamente la receta como comida',
       customIngredientTitle: 'Añadir Ingrediente Personalizado',
+      quickIngredientTitle: 'Añadir Ingrediente Rápido',
       ingredientName: 'Nombre del Ingrediente',
       proteinPer100g: 'Proteína por 100 g',
       totalProtein: 'Proteína Total:',
