@@ -386,13 +386,6 @@ export default function CreateRecipeScreen() {
             <Text style={styles.customIngredientButtonText}>{t.createRecipe.addCustomIngredient}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.quickIngredientButton}
-            onPress={() => setShowQuickIngredient(true)}
-          >
-            <Text style={styles.quickIngredientButtonText}>{t.createRecipe.addQuickIngredient}</Text>
-          </TouchableOpacity>
-
           {showFilters && (
             <View style={styles.filtersContainer}>
               <Text style={styles.filterLabel}>{t.createRecipe.category}</Text>
@@ -607,6 +600,17 @@ export default function CreateRecipeScreen() {
                   placeholderTextColor="#9ca3af"
                 />
               </View>
+
+              {/* Add Quick Ingredient Button */}
+              <TouchableOpacity
+                style={styles.quickIngredientButtonInModal}
+                onPress={() => {
+                  setShowCustomIngredient(false);
+                  setShowQuickIngredient(true);
+                }}
+              >
+                <Text style={styles.quickIngredientButtonText}>{t.createRecipe.addQuickIngredient}</Text>
+              </TouchableOpacity>
 
               {/* List of saved ingredients */}
               {filteredSavedIngredients.length === 0 ? (
@@ -984,6 +988,14 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     marginBottom: 8,
+  },
+  quickIngredientButtonInModal: {
+    backgroundColor: '#6366f1',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+    marginTop: 4,
   },
   quickIngredientButtonText: {
     color: '#ffffff',
