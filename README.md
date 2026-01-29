@@ -1,16 +1,13 @@
 # Protein Tracker
 
-A React Native Expo app for tracking daily protein intake with real-time cloud synchronization.
+A React Native Expo app for tracking daily protein intake.
 
 ## Features
 
 - 📊 **Home Screen**: View daily protein consumption and remaining allowance below your limit
-- 🔐 **User Authentication**: Secure login with Firebase Authentication
-- ☁️ **Cloud Sync**: Real-time data synchronization across all your devices
-- 👥 **Collaborative Tracking**: Share your account with others for real-time collaboration
 - 📷 **Scan Screen**: Use barcode scanner to scan food items (requires camera permissions)
 - ➕ **Add Meal Screen**: Manually add foods with name, protein per 100g, and grams eaten
-- ⚙️ **Settings Screen**: Configure daily protein limit and manage your account
+- ⚙️ **Settings Screen**: Configure daily protein limit
 
 ## Technology Stack
 
@@ -18,9 +15,7 @@ A React Native Expo app for tracking daily protein intake with real-time cloud s
 - **TypeScript** for type safety
 - **Expo Router** for navigation (tab-based navigation)
 - **Zustand** for global state management
-- **Firebase Authentication** for user login
-- **Cloud Firestore** for real-time data synchronization
-- **AsyncStorage** for local data persistence and offline access
+- **AsyncStorage** for data persistence
 - **Expo Camera & Barcode Scanner** for scanning barcodes
 - **EAS Update** for over-the-air (OTA) updates
 - **StyleSheet** for styling (following React Native best practices)
@@ -38,16 +33,12 @@ A React Native Expo app for tracking daily protein intake with real-time cloud s
    npm install
    ```
 
-3. Set up Firebase (required for authentication and cloud sync):
-   - Follow the detailed guide in [FIREBASE_SETUP.md](./FIREBASE_SETUP.md)
-   - Configure your Firebase credentials in `/config/firebase.ts`
-
-4. Start the development server:
+3. Start the development server:
    ```bash
    npm start
    ```
 
-5. Run on your device:
+4. Run on your device:
    - **iOS**: Press `i` in the terminal or scan the QR code with the Camera app
    - **Android**: Press `a` in the terminal or scan the QR code with the Expo Go app
    - **Web**: Press `w` in the terminal
@@ -103,42 +94,11 @@ protein-tracker/
 
 ### Settings
 - Set your daily protein limit to help manage your protein intake
-- Change app language (English/Spanish)
-- Manage meal tags
-- Export your data via email
-- View your logged-in account
-- Logout from your account
-
-## Authentication & Cloud Sync
-
-### User Authentication
-- Create an account with email and password
-- Secure login with Firebase Authentication
-- Password must be at least 6 characters
-
-### Real-Time Data Synchronization
-- All your data (meals, recipes, ingredients, settings) is automatically synced to the cloud
-- Data is updated in real-time across all your logged-in devices
-- Changes made on one device appear instantly on all other devices
-- Offline support: Data is cached locally and synced when you're back online
-
-### Collaborative Features
-- Share your account credentials with family members or friends
-- Multiple people can log in with the same account on different devices
-- Everyone sees the same data and updates in real-time
-- Perfect for couples or families tracking protein intake together
-
-### Data Security
-- Your data is private and secure
-- Only you (and those you share credentials with) can access your data
-- Each user's data is isolated in Firebase Firestore
-- All communication is encrypted via HTTPS
-
-For detailed Firebase setup instructions, see [FIREBASE_SETUP.md](./FIREBASE_SETUP.md).
+- View app information and features
 
 ## Data Persistence
 
-All meals and settings are automatically saved both locally (using AsyncStorage) and to the cloud (using Firebase Firestore). Your data persists even after closing the app and is synchronized across all your devices.
+All meals and settings are automatically saved to your device using AsyncStorage. Your data persists even after closing the app.
 
 ## State Management
 

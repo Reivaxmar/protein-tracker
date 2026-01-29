@@ -61,7 +61,4 @@ export interface AppState {
   updateCustomIngredient: (ingredientId: string, updatedIngredient: Omit<CustomIngredient, 'id' | 'createdAt'>) => void;
   loadData: () => Promise<void>;
   saveData: () => Promise<void>;
-  syncWithFirestore: (userId: string) => void;
-  stopFirestoreSync: () => void;
-  clearData: () => void;
 }
