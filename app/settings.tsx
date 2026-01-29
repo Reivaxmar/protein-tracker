@@ -12,6 +12,7 @@ export default function SettingsScreen() {
   const dailyProteinData = useProteinStore((state) => state.dailyProteinData);
   const recipes = useProteinStore((state) => state.recipes);
   const customIngredients = useProteinStore((state) => state.customIngredients);
+  const clearData = useProteinStore((state) => state.clearData);
   const language = useLanguageStore((state) => state.language);
   const setLanguage = useLanguageStore((state) => state.setLanguage);
   const t = useLanguageStore((state) => state.translations);
@@ -188,6 +189,8 @@ export default function SettingsScreen() {
           onPress: async () => {
             try {
               await logout();
+              // Clear local data after logout to prevent data leakage
+              clearData();
             } catch (error: any) {
               Alert.alert(t.error, error.message || 'Failed to logout');
             }

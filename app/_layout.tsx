@@ -85,9 +85,10 @@ export default function RootLayout() {
         router.replace('/');
       }
     } else {
-      // User is not logged in - stop syncing and clear data
+      // User is not logged in - stop syncing but DON'T clear data
+      // This allows users who have been using the app without login to keep their data
+      // Data will only be cleared on explicit logout (see settings screen)
       stopFirestoreSync();
-      clearData();
       
       // Redirect to login if not already there
       if (!inAuthGroup) {
