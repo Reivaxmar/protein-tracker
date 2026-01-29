@@ -53,6 +53,11 @@ const firebaseConfig = {
 };
 ```
 
+**⚠️ Important Security Note:**
+- The `/config/firebase.ts` file in this repository contains placeholder values and is safe to commit
+- **DO NOT** commit your actual Firebase credentials if you're planning to open-source your fork or share it publicly
+- For production apps, consider using environment variables (see the "Production Deployment" section below)
+
 ## Step 4: Enable Authentication
 
 1. In the Firebase Console, go to **Authentication** in the left sidebar
