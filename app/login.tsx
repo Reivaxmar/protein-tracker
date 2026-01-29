@@ -23,19 +23,24 @@ export default function LoginScreen() {
 
   const handleSubmit = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password');
+      Alert.alert(t.error, t.auth.enterBothFields);
+      return;
+    }
+
+    if (!email.includes('@')) {
+      Alert.alert(t.error, t.auth.invalidEmail);
       return;
     }
 
     try {
       if (isRegisterMode) {
         await register(email, password);
-        Alert.alert('Success', 'Account created successfully!');
+        Alert.alert(t.success, t.auth.accountCreated);
       } else {
         await login(email, password);
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Authentication failed');
+      Alert.alert(t.error, error.message || 'Authentication failed');
     }
   };
 
@@ -50,18 +55,18 @@ export default function LoginScreen() {
       >
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.title}>Protein Tracker</Text>
+            <Text style={styles.title}>{t.auth.appTitle}</Text>
             <Text style={styles.subtitle}>
-              {isRegisterMode ? 'Create Account' : 'Welcome Back'}
+              {isRegisterMode ? t.auth.createAccount : t.auth.welcomeBack}
             </Text>
           </View>
 
           <View style={styles.form}>
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t.auth.email}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter your email"
+                placeholder={t.auth.enterEmail}
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -71,10 +76,10 @@ export default function LoginScreen() {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={styles.label}>{t.auth.password}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter your password"
+                placeholder={t.auth.enterPassword}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -93,20 +98,23 @@ export default function LoginScreen() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.buttonText}>
-                  {isRegisterMode ? 'Create Account' : 'Login'}
+                  {isRegisterMode ? t.auth.register : t.auth.login}
                 </Text>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.switchButton}
-              onPress={() => setIsRegisterMode(!isRegisterMode)}
+              onPress={() => {
+                setIsRegisterMode(!isRegisterMode);
+                useAuthStore.setState({ error: null });
+              }}
               disabled={loading}
             >
               <Text style={styles.switchButtonText}>
                 {isRegisterMode
-                  ? 'Already have an account? Login'
-                  : "Don't have an account? Register"}
+                  ? t.auth.alreadyHaveAccount
+                  : t.auth.noAccount}
               </Text>
             </TouchableOpacity>
           </View>
@@ -114,8 +122,8 @@ export default function LoginScreen() {
           <View style={styles.footer}>
             <Text style={styles.footerText}>
               {isRegisterMode
-                ? 'By creating an account, your data will be synced across all your devices.'
-                : 'Login to sync your data across devices and collaborate with others.'}
+                ? t.auth.createAccountInfo
+                : t.auth.loginToSync}
             </Text>
           </View>
         </View>

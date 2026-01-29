@@ -68,6 +68,32 @@ export interface Translations {
     emailRequired: string;
     invalidEmail: string;
     noEmailApp: string;
+    account: string;
+    loggedInAs: string;
+    syncInfo: string;
+    logout: string;
+    logoutConfirmation: string;
+    logoutMessage: string;
+  };
+  
+  // Auth/Login Screen
+  auth: {
+    appTitle: string;
+    welcomeBack: string;
+    createAccount: string;
+    email: string;
+    password: string;
+    enterEmail: string;
+    enterPassword: string;
+    login: string;
+    register: string;
+    alreadyHaveAccount: string;
+    noAccount: string;
+    loginToSync: string;
+    createAccountInfo: string;
+    accountCreated: string;
+    invalidEmail: string;
+    enterBothFields: string;
   };
   
   // Quick Meal Screen
@@ -341,6 +367,32 @@ export const translations: Record<Language, Translations> = {
       emailRequired: 'Please enter an email address',
       invalidEmail: 'Please enter a valid email address',
       noEmailApp: 'No email app available on this device',
+      account: 'Account',
+      loggedInAs: 'Logged in as',
+      syncInfo: 'Your data is automatically synced across all your devices in real-time.',
+      logout: 'Logout',
+      logoutConfirmation: 'Logout',
+      logoutMessage: 'Are you sure you want to logout? Your data will still be synced to the cloud.',
+    },
+    
+    // Auth/Login Screen
+    auth: {
+      appTitle: 'Protein Tracker',
+      welcomeBack: 'Welcome Back',
+      createAccount: 'Create Account',
+      email: 'Email',
+      password: 'Password',
+      enterEmail: 'Enter your email',
+      enterPassword: 'Enter your password',
+      login: 'Login',
+      register: 'Create Account',
+      alreadyHaveAccount: 'Already have an account? Login',
+      noAccount: "Don't have an account? Register",
+      loginToSync: 'Login to sync your data across devices and collaborate with others.',
+      createAccountInfo: 'By creating an account, your data will be synced across all your devices.',
+      accountCreated: 'Account created successfully!',
+      invalidEmail: 'Please enter a valid email address',
+      enterBothFields: 'Please enter both email and password',
     },
     
     // Quick Meal Screen
@@ -612,6 +664,32 @@ export const translations: Record<Language, Translations> = {
       emailRequired: 'Por favor, introduce una dirección de correo electrónico',
       invalidEmail: 'Por favor, introduce una dirección de correo válida',
       noEmailApp: 'No hay aplicación de correo disponible en este dispositivo',
+      account: 'Cuenta',
+      loggedInAs: 'Conectado como',
+      syncInfo: 'Tus datos se sincronizan automáticamente en todos tus dispositivos en tiempo real.',
+      logout: 'Cerrar sesión',
+      logoutConfirmation: 'Cerrar sesión',
+      logoutMessage: '¿Estás seguro de que quieres cerrar sesión? Tus datos seguirán sincronizados en la nube.',
+    },
+    
+    // Pantalla de Autenticación/Login
+    auth: {
+      appTitle: 'Seguimiento de Proteínas',
+      welcomeBack: 'Bienvenido de Nuevo',
+      createAccount: 'Crear Cuenta',
+      email: 'Correo Electrónico',
+      password: 'Contraseña',
+      enterEmail: 'Introduce tu correo electrónico',
+      enterPassword: 'Introduce tu contraseña',
+      login: 'Iniciar Sesión',
+      register: 'Crear Cuenta',
+      alreadyHaveAccount: '¿Ya tienes una cuenta? Inicia Sesión',
+      noAccount: '¿No tienes una cuenta? Regístrate',
+      loginToSync: 'Inicia sesión para sincronizar tus datos entre dispositivos y colaborar con otros.',
+      createAccountInfo: 'Al crear una cuenta, tus datos se sincronizarán en todos tus dispositivos.',
+      accountCreated: '¡Cuenta creada exitosamente!',
+      invalidEmail: 'Por favor, introduce una dirección de correo válida',
+      enterBothFields: 'Por favor, introduce correo electrónico y contraseña',
     },
     
     // Pantalla de Comida Rápida
