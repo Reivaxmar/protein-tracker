@@ -63,4 +63,5 @@ export interface AppState {
   saveData: () => Promise<void>;
   syncWithFirestore: (userId: string) => void;
   stopFirestoreSync: () => void;
+  clearData: () => void;
 }

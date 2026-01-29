@@ -4,9 +4,13 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  User
+  User,
+  Unsubscribe
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
+
+// Store the auth listener unsubscribe function
+let authUnsubscribe: Unsubscribe | null = null;
 
 interface AuthState {
   user: User | null;
@@ -68,12 +72,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   initAuth: () => {
+    // Clean up existing listener if any
+    if (authUnsubscribe) {
+      authUnsubscribe();
+      authUnsubscribe = null;
+    }
+    
     // Set up auth state listener
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    authUnsubscribe = onAuthStateChanged(auth, (user) => {
       set({ user, loading: false });
     });
     
-    // Return unsubscribe function if needed for cleanup
-    return unsubscribe;
+    // Return unsubscribe function for cleanup
+    return authUnsubscribe;
   },
 }));

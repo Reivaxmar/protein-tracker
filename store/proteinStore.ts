@@ -296,32 +296,36 @@ export const useProteinStore = create<AppState>((set, get) => ({
     firestoreUnsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
       if (docSnapshot.exists()) {
         const data = docSnapshot.data();
-        set({
-          targetProtein: data.targetProtein || 150,
-          meals: data.meals || [],
-          dailyProteinData: data.dailyProteinData || {},
-          recipes: data.recipes || [],
-          customIngredients: data.customIngredients || [],
-        });
         
-        // Also save to AsyncStorage for offline access
-        AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data)).catch(console.error);
+        // Only update if this is a server change (not our own pending write)
+        if (!docSnapshot.metadata.hasPendingWrites) {
+          set({
+            targetProtein: data.targetProtein || 150,
+            meals: data.meals || [],
+            dailyProteinData: data.dailyProteinData || {},
+            recipes: data.recipes || [],
+            customIngredients: data.customIngredients || [],
+          });
+          
+          // Also save to AsyncStorage for offline access
+          AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data)).catch(console.error);
+        }
+      } else {
+        // Document doesn't exist yet - upload current local data
+        const state = get();
+        const data = {
+          targetProtein: state.targetProtein,
+          meals: state.meals,
+          dailyProteinData: state.dailyProteinData,
+          recipes: state.recipes,
+          customIngredients: state.customIngredients,
+        };
+        setDoc(userDocRef, data).catch((error) => {
+          console.error('Error creating initial Firestore document:', error);
+        });
       }
     }, (error) => {
       console.error('Error syncing with Firestore:', error);
-    });
-
-    // Upload current local data to Firestore
-    const state = get();
-    const data = {
-      targetProtein: state.targetProtein,
-      meals: state.meals,
-      dailyProteinData: state.dailyProteinData,
-      recipes: state.recipes,
-      customIngredients: state.customIngredients,
-    };
-    setDoc(userDocRef, data, { merge: true }).catch((error) => {
-      console.error('Error uploading data to Firestore:', error);
     });
   },
 
@@ -330,5 +334,15 @@ export const useProteinStore = create<AppState>((set, get) => ({
       firestoreUnsubscribe();
       firestoreUnsubscribe = null;
     }
+  },
+
+  clearData: () => {
+    set({
+      targetProtein: 150,
+      meals: [],
+      dailyProteinData: {},
+      recipes: [],
+      customIngredients: [],
+    });
   },
 }));

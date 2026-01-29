@@ -15,6 +15,7 @@ export default function RootLayout() {
   const translations = useLanguageStore((state) => state.translations);
   const syncWithFirestore = useProteinStore((state) => state.syncWithFirestore);
   const stopFirestoreSync = useProteinStore((state) => state.stopFirestoreSync);
+  const clearData = useProteinStore((state) => state.clearData);
   const { user, loading, initAuth } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
@@ -84,8 +85,9 @@ export default function RootLayout() {
         router.replace('/');
       }
     } else {
-      // User is not logged in - stop syncing
+      // User is not logged in - stop syncing and clear data
       stopFirestoreSync();
+      clearData();
       
       // Redirect to login if not already there
       if (!inAuthGroup) {
