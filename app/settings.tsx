@@ -1,16 +1,13 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useState } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
 import { useTagStore, DEFAULT_TAGS } from '../store/tagStore';
 import { Language } from '../translations';
-import { exportAsCSV, exportAsXLSX } from '../utils/exportData';
 
 export default function SettingsScreen() {
   const targetProtein = useProteinStore((state) => state.targetProtein);
   const setTargetProtein = useProteinStore((state) => state.setTargetProtein);
-  const meals = useProteinStore((state) => state.meals);
-  const dailyProteinData = useProteinStore((state) => state.dailyProteinData);
   const language = useLanguageStore((state) => state.language);
   const setLanguage = useLanguageStore((state) => state.setLanguage);
   const t = useLanguageStore((state) => state.translations);
@@ -19,7 +16,6 @@ export default function SettingsScreen() {
   const removeTag = useTagStore((state) => state.removeTag);
   const [inputValue, setInputValue] = useState(targetProtein.toString());
   const [newTagValue, setNewTagValue] = useState('');
-  const [isExporting, setIsExporting] = useState(false);
 
   const handleSave = () => {
     const newTarget = parseFloat(inputValue);
@@ -70,42 +66,6 @@ export default function SettingsScreen() {
         },
       ]
     );
-  };
-
-  const handleExportCSV = async () => {
-    if (Object.keys(dailyProteinData).length === 0) {
-      Alert.alert(t.error, t.settings.noDataToExport);
-      return;
-    }
-
-    setIsExporting(true);
-    try {
-      await exportAsCSV({ meals, dailyProteinData });
-      Alert.alert(t.success, t.settings.exportSuccess);
-    } catch (error) {
-      console.error('Export error:', error);
-      Alert.alert(t.error, t.settings.exportError);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleExportXLSX = async () => {
-    if (Object.keys(dailyProteinData).length === 0) {
-      Alert.alert(t.error, t.settings.noDataToExport);
-      return;
-    }
-
-    setIsExporting(true);
-    try {
-      await exportAsXLSX({ meals, dailyProteinData });
-      Alert.alert(t.success, t.settings.exportSuccess);
-    } catch (error) {
-      console.error('Export error:', error);
-      Alert.alert(t.error, t.settings.exportError);
-    } finally {
-      setIsExporting(false);
-    }
   };
 
   return (
@@ -219,42 +179,6 @@ export default function SettingsScreen() {
             <Text style={styles.hint}>
               Create custom tags to categorize your meals. Default tags (breakfast, lunch, dinner) cannot be removed.
             </Text>
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.title}>{t.settings.exportData}</Text>
-          
-          <View style={styles.formGroup}>
-            <Text style={styles.hint}>
-              {t.settings.exportDescription}
-            </Text>
-          </View>
-
-          <View style={styles.exportButtonsContainer}>
-            <TouchableOpacity
-              style={[styles.exportButton, styles.exportButtonCSV]}
-              onPress={handleExportCSV}
-              disabled={isExporting}
-            >
-              {isExporting ? (
-                <ActivityIndicator color="#ffffff" />
-              ) : (
-                <Text style={styles.exportButtonText}>{t.settings.exportCSV}</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.exportButton, styles.exportButtonXLSX]}
-              onPress={handleExportXLSX}
-              disabled={isExporting}
-            >
-              {isExporting ? (
-                <ActivityIndicator color="#ffffff" />
-              ) : (
-                <Text style={styles.exportButtonText}>{t.settings.exportXLSX}</Text>
-              )}
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -437,29 +361,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addTagButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  exportButtonsContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  exportButton: {
-    flex: 1,
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 50,
-  },
-  exportButtonCSV: {
-    backgroundColor: '#10b981',
-  },
-  exportButtonXLSX: {
-    backgroundColor: '#059669',
-  },
-  exportButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
