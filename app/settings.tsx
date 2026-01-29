@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, Linking } from 'react-native';
 import { useState } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
@@ -8,6 +8,9 @@ import { Language } from '../translations';
 export default function SettingsScreen() {
   const targetProtein = useProteinStore((state) => state.targetProtein);
   const setTargetProtein = useProteinStore((state) => state.setTargetProtein);
+  const dailyProteinData = useProteinStore((state) => state.dailyProteinData);
+  const recipes = useProteinStore((state) => state.recipes);
+  const customIngredients = useProteinStore((state) => state.customIngredients);
   const language = useLanguageStore((state) => state.language);
   const setLanguage = useLanguageStore((state) => state.setLanguage);
   const t = useLanguageStore((state) => state.translations);
@@ -16,6 +19,8 @@ export default function SettingsScreen() {
   const removeTag = useTagStore((state) => state.removeTag);
   const [inputValue, setInputValue] = useState(targetProtein.toString());
   const [newTagValue, setNewTagValue] = useState('');
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [emailValue, setEmailValue] = useState('');
 
   const handleSave = () => {
     const newTarget = parseFloat(inputValue);
@@ -66,6 +71,107 @@ export default function SettingsScreen() {
         },
       ]
     );
+  };
+
+  const formatDataForEmail = () => {
+    let emailBody = 'PROTEIN TRACKER DATA EXPORT\n';
+    emailBody += '================================\n\n';
+
+    // Daily Meals Section
+    emailBody += '📅 DAILY MEALS\n';
+    emailBody += '---------------\n\n';
+    
+    const sortedDates = Object.keys(dailyProteinData).sort().reverse();
+    if (sortedDates.length === 0) {
+      emailBody += 'No meals recorded yet.\n\n';
+    } else {
+      sortedDates.forEach((date) => {
+        const dayData = dailyProteinData[date];
+        emailBody += `Date: ${date}\n`;
+        emailBody += `Total Protein: ${dayData.totalProtein.toFixed(1)}g / Target: ${dayData.targetProtein}g\n`;
+        emailBody += 'Meals:\n';
+        dayData.meals.forEach((meal) => {
+          emailBody += `  • ${meal.name}: ${meal.totalProtein.toFixed(1)}g protein (${meal.gramsEaten}g eaten)`;
+          if (meal.tag) {
+            emailBody += ` [${meal.tag}]`;
+          }
+          emailBody += '\n';
+        });
+        emailBody += '\n';
+      });
+    }
+
+    // Custom Ingredients Section
+    emailBody += '\n🥗 CUSTOM INGREDIENTS\n';
+    emailBody += '----------------------\n\n';
+    
+    if (customIngredients.length === 0) {
+      emailBody += 'No custom ingredients created yet.\n\n';
+    } else {
+      customIngredients.forEach((ingredient) => {
+        emailBody += `• ${ingredient.name}: ${ingredient.proteinPer100g}g protein per 100g\n`;
+      });
+      emailBody += '\n';
+    }
+
+    // Recipes Section
+    emailBody += '\n📝 RECIPES\n';
+    emailBody += '-----------\n\n';
+    
+    if (recipes.length === 0) {
+      emailBody += 'No recipes created yet.\n\n';
+    } else {
+      recipes.forEach((recipe) => {
+        emailBody += `Recipe: ${recipe.name}\n`;
+        emailBody += `Total: ${recipe.totalProtein.toFixed(1)}g protein, ${recipe.totalGrams}g total\n`;
+        emailBody += 'Ingredients:\n';
+        recipe.ingredients.forEach((ing) => {
+          emailBody += `  • ${ing.name}: ${ing.gramsInRecipe}g (${ing.totalProtein.toFixed(1)}g protein)\n`;
+        });
+        emailBody += '\n';
+      });
+    }
+
+    emailBody += '\n================================\n';
+    emailBody += 'Exported from Protein Tracker App\n';
+
+    return emailBody;
+  };
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleExportViaEmail = async () => {
+    if (!emailValue.trim()) {
+      Alert.alert(t.error, t.settings.emailRequired || 'Please enter an email address');
+      return;
+    }
+
+    if (!validateEmail(emailValue.trim())) {
+      Alert.alert(t.error, t.settings.invalidEmail || 'Please enter a valid email address');
+      return;
+    }
+
+    const emailBody = formatDataForEmail();
+    const subject = encodeURIComponent('Protein Tracker - Data Export');
+    const body = encodeURIComponent(emailBody);
+    const mailtoUrl = `mailto:${emailValue.trim()}?subject=${subject}&body=${body}`;
+
+    try {
+      const supported = await Linking.canOpenURL(mailtoUrl);
+      if (supported) {
+        await Linking.openURL(mailtoUrl);
+        setShowExportModal(false);
+        setEmailValue('');
+      } else {
+        Alert.alert(t.error, t.settings.noEmailApp || 'No email app available on this device');
+      }
+    } catch (error) {
+      console.error('Error opening email:', error);
+      Alert.alert(t.error, t.settings.exportError);
+    }
   };
 
   return (
@@ -182,6 +288,23 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        <View style={styles.card}>
+          <Text style={styles.title}>{t.settings.exportData}</Text>
+          
+          <View style={styles.formGroup}>
+            <Text style={styles.hint}>
+              {t.settings.exportEmailDescription || 'Export all your data (meals, ingredients, and recipes) via email.'}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.exportButton}
+            onPress={() => setShowExportModal(true)}
+          >
+            <Text style={styles.exportButtonText}>📧 {t.settings.exportViaEmail || 'Export via Email'}</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>{t.settings.aboutTitle}</Text>
           <Text style={styles.infoText}>
@@ -196,6 +319,57 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </View>
+
+      <Modal
+        visible={showExportModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowExportModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t.settings.exportViaEmail || 'Export via Email'}</Text>
+            
+            <Text style={styles.modalDescription}>
+              {t.settings.exportEmailPrompt || 'Enter your email address to receive your data export:'}
+            </Text>
+            
+            <TextInput
+              style={styles.emailInput}
+              placeholder={t.settings.emailPlaceholder || 'your@email.com'}
+              value={emailValue}
+              onChangeText={setEmailValue}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholderTextColor="#9ca3af"
+            />
+            
+            <Text style={styles.modalHint}>
+              {t.settings.exportEmailHint || 'This will open your email app with all your data ready to send.'}
+            </Text>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => {
+                  setShowExportModal(false);
+                  setEmailValue('');
+                }}
+              >
+                <Text style={styles.modalCancelButtonText}>{t.cancel}</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.modalSendButton}
+                onPress={handleExportViaEmail}
+              >
+                <Text style={styles.modalSendButtonText}>{t.settings.sendExport || 'Send Export'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -361,6 +535,94 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addTagButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  exportButton: {
+    backgroundColor: '#8b5cf6',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+  },
+  exportButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  emailInput: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 14,
+    fontSize: 16,
+    color: '#1f2937',
+    marginBottom: 12,
+  },
+  modalHint: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalCancelButton: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+  },
+  modalCancelButtonText: {
+    color: '#6b7280',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalSendButton: {
+    flex: 1,
+    backgroundColor: '#8b5cf6',
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+  },
+  modalSendButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',

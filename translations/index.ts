@@ -59,6 +59,15 @@ export interface Translations {
     exportSuccess: string;
     exportError: string;
     noDataToExport: string;
+    exportViaEmail: string;
+    exportEmailDescription: string;
+    exportEmailPrompt: string;
+    emailPlaceholder: string;
+    exportEmailHint: string;
+    sendExport: string;
+    emailRequired: string;
+    invalidEmail: string;
+    noEmailApp: string;
   };
   
   // Quick Meal Screen
@@ -323,6 +332,15 @@ export const translations: Record<Language, Translations> = {
       exportSuccess: 'Data exported successfully!',
       exportError: 'Error exporting data',
       noDataToExport: 'No data available to export',
+      exportViaEmail: 'Export via Email',
+      exportEmailDescription: 'Export all your data (daily meals, custom ingredients, and recipes) via email.',
+      exportEmailPrompt: 'Enter your email address to receive your data export:',
+      emailPlaceholder: 'your@email.com',
+      exportEmailHint: 'This will open your email app with all your data ready to send.',
+      sendExport: 'Send Export',
+      emailRequired: 'Please enter an email address',
+      invalidEmail: 'Please enter a valid email address',
+      noEmailApp: 'No email app available on this device',
     },
     
     // Quick Meal Screen
@@ -585,6 +603,15 @@ export const translations: Record<Language, Translations> = {
       exportSuccess: '¡Datos exportados correctamente!',
       exportError: 'Error al exportar datos',
       noDataToExport: 'No hay datos disponibles para exportar',
+      exportViaEmail: 'Exportar por Email',
+      exportEmailDescription: 'Exporta todos tus datos (comidas diarias, ingredientes personalizados y recetas) por correo electrónico.',
+      exportEmailPrompt: 'Introduce tu dirección de correo electrónico para recibir la exportación de datos:',
+      emailPlaceholder: 'tu@email.com',
+      exportEmailHint: 'Esto abrirá tu aplicación de correo con todos tus datos listos para enviar.',
+      sendExport: 'Enviar Exportación',
+      emailRequired: 'Por favor, introduce una dirección de correo electrónico',
+      invalidEmail: 'Por favor, introduce una dirección de correo válida',
+      noEmailApp: 'No hay aplicación de correo disponible en este dispositivo',
     },
     
     // Pantalla de Comida Rápida
