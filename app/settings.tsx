@@ -178,18 +178,18 @@ export default function SettingsScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout? Your data will still be synced to the cloud.',
+      t.settings.logoutConfirmation,
+      t.settings.logoutMessage,
       [
         { text: t.cancel, style: 'cancel' },
         {
-          text: 'Logout',
+          text: t.settings.logout,
           style: 'destructive',
           onPress: async () => {
             try {
               await logout();
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to logout');
+              Alert.alert(t.error, error.message || 'Failed to logout');
             }
           },
         },
@@ -344,19 +344,19 @@ export default function SettingsScreen() {
 
         {user && (
           <View style={styles.card}>
-            <Text style={styles.title}>Account</Text>
+            <Text style={styles.title}>{t.settings.account}</Text>
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Logged in as</Text>
+              <Text style={styles.label}>{t.settings.loggedInAs}</Text>
               <Text style={styles.userEmail}>{user.email}</Text>
               <Text style={styles.hint}>
-                Your data is automatically synced across all your devices in real-time.
+                {t.settings.syncInfo}
               </Text>
             </View>
             <TouchableOpacity
               style={styles.logoutButton}
               onPress={handleLogout}
             >
-              <Text style={styles.logoutButtonText}>Logout</Text>
+              <Text style={styles.logoutButtonText}>{t.settings.logout}</Text>
             </TouchableOpacity>
           </View>
         )}
