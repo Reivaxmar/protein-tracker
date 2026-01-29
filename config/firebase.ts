@@ -5,12 +5,13 @@ import { getFirestore } from 'firebase/firestore';
 // Firebase configuration
 // Users should replace these with their own Firebase project credentials
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDOgQI21sIXK10ukjA3VPdkuu18QQXuTr0",
+  authDomain: "protein-tracker-5cbf2.firebaseapp.com",
+  projectId: "protein-tracker-5cbf2",
+  storageBucket: "protein-tracker-5cbf2.firebasestorage.app",
+  messagingSenderId: "397020955391",
+  appId: "1:397020955391:web:73e931975b97f26e2502ca",
+  measurementId: "G-QYRN72ZT81"
 };
 
 // Initialize Firebase
