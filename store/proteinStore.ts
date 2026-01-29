@@ -2,8 +2,13 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, Meal, DailyProteinData, Recipe, CustomIngredient } from '../types';
 import { getTodayDateString, generateUniqueId } from '../utils/helpers';
+import { db, auth } from '../config/firebase';
+import { doc, setDoc, onSnapshot, collection } from 'firebase/firestore';
 
 const STORAGE_KEY = '@protein_tracker_data';
+
+// Track Firestore listeners for cleanup
+let firestoreUnsubscribe: (() => void) | null = null;
 
 export const useProteinStore = create<AppState>((set, get) => ({
   targetProtein: 150,
@@ -266,8 +271,78 @@ export const useProteinStore = create<AppState>((set, get) => ({
       };
       const jsonValue = JSON.stringify(data);
       await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+      
+      // Also sync to Firestore if user is logged in
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        await setDoc(userDocRef, data, { merge: true });
+      }
     } catch (e) {
       console.error('Error saving data:', e);
     }
+  },
+
+  syncWithFirestore: (userId: string) => {
+    // Clean up any existing listener
+    if (firestoreUnsubscribe) {
+      firestoreUnsubscribe();
+    }
+
+    // Create a reference to the user's data document
+    const userDocRef = doc(db, 'users', userId);
+
+    // Set up real-time listener for Firestore changes
+    firestoreUnsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const data = docSnapshot.data();
+        
+        // Only update if this is a server change (not our own pending write)
+        if (!docSnapshot.metadata.hasPendingWrites) {
+          set({
+            targetProtein: data.targetProtein || 150,
+            meals: data.meals || [],
+            dailyProteinData: data.dailyProteinData || {},
+            recipes: data.recipes || [],
+            customIngredients: data.customIngredients || [],
+          });
+          
+          // Also save to AsyncStorage for offline access
+          AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data)).catch(console.error);
+        }
+      } else {
+        // Document doesn't exist yet - upload current local data
+        const state = get();
+        const data = {
+          targetProtein: state.targetProtein,
+          meals: state.meals,
+          dailyProteinData: state.dailyProteinData,
+          recipes: state.recipes,
+          customIngredients: state.customIngredients,
+        };
+        setDoc(userDocRef, data).catch((error) => {
+          console.error('Error creating initial Firestore document:', error);
+        });
+      }
+    }, (error) => {
+      console.error('Error syncing with Firestore:', error);
+    });
+  },
+
+  stopFirestoreSync: () => {
+    if (firestoreUnsubscribe) {
+      firestoreUnsubscribe();
+      firestoreUnsubscribe = null;
+    }
+  },
+
+  clearData: () => {
+    set({
+      targetProtein: 150,
+      meals: [],
+      dailyProteinData: {},
+      recipes: [],
+      customIngredients: [],
+    });
   },
 }));

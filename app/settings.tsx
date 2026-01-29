@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
 import { useTagStore, DEFAULT_TAGS } from '../store/tagStore';
+import { useAuthStore } from '../store/authStore';
 import { Language } from '../translations';
 
 export default function SettingsScreen() {
@@ -11,12 +12,14 @@ export default function SettingsScreen() {
   const dailyProteinData = useProteinStore((state) => state.dailyProteinData);
   const recipes = useProteinStore((state) => state.recipes);
   const customIngredients = useProteinStore((state) => state.customIngredients);
+  const clearData = useProteinStore((state) => state.clearData);
   const language = useLanguageStore((state) => state.language);
   const setLanguage = useLanguageStore((state) => state.setLanguage);
   const t = useLanguageStore((state) => state.translations);
   const tags = useTagStore((state) => state.tags);
   const addTag = useTagStore((state) => state.addTag);
   const removeTag = useTagStore((state) => state.removeTag);
+  const { user, logout } = useAuthStore();
   const [inputValue, setInputValue] = useState(targetProtein.toString());
   const [newTagValue, setNewTagValue] = useState('');
   const [showExportModal, setShowExportModal] = useState(false);
@@ -174,6 +177,29 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      t.settings.logoutConfirmation,
+      t.settings.logoutMessage,
+      [
+        { text: t.cancel, style: 'cancel' },
+        {
+          text: t.settings.logout,
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              // Clear local data after logout to prevent data leakage
+              clearData();
+            } catch (error: any) {
+              Alert.alert(t.error, error.message || 'Failed to logout');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
@@ -318,6 +344,25 @@ export default function SettingsScreen() {
             {t.settings.featuresText}
           </Text>
         </View>
+
+        {user && (
+          <View style={styles.card}>
+            <Text style={styles.title}>{t.settings.account}</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>{t.settings.loggedInAs}</Text>
+              <Text style={styles.userEmail}>{user.email}</Text>
+              <Text style={styles.hint}>
+                {t.settings.syncInfo}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
+              <Text style={styles.logoutButtonText}>{t.settings.logout}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <Modal
@@ -623,6 +668,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalSendButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  userEmail: {
+    fontSize: 16,
+    color: '#1f2937',
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  logoutButton: {
+    backgroundColor: '#ef4444',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+  },
+  logoutButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',

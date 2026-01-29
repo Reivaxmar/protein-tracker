@@ -1,10 +1,11 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter, useSegments } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, TextInput } from 'react-native';
+import { Text, TextInput, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useEffect } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
 import { useTagStore } from '../store/tagStore';
+import { useAuthStore } from '../store/authStore';
 import * as Updates from 'expo-updates';
 
 export default function RootLayout() {
@@ -12,6 +13,12 @@ export default function RootLayout() {
   const loadLanguage = useLanguageStore((state) => state.loadLanguage);
   const loadTags = useTagStore((state) => state.loadTags);
   const translations = useLanguageStore((state) => state.translations);
+  const syncWithFirestore = useProteinStore((state) => state.syncWithFirestore);
+  const stopFirestoreSync = useProteinStore((state) => state.stopFirestoreSync);
+  const clearData = useProteinStore((state) => state.clearData);
+  const { user, loading, initAuth } = useAuthStore();
+  const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     // Disable font scaling to prevent UI layout breakage on devices with
@@ -31,6 +38,9 @@ export default function RootLayout() {
     loadData();
     loadLanguage();
     loadTags();
+    
+    // Initialize authentication
+    const unsubscribe = initAuth();
     
     // Check for OTA updates on app launch
     async function checkForUpdates() {
@@ -52,7 +62,50 @@ export default function RootLayout() {
     }
     
     checkForUpdates();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
+
+  // Handle authentication state changes
+  useEffect(() => {
+    if (loading) return;
+
+    const inAuthGroup = segments[0] === 'login';
+
+    if (user) {
+      // User is logged in - sync with Firestore
+      syncWithFirestore(user.uid);
+      
+      // Redirect to home if on login page
+      if (inAuthGroup) {
+        router.replace('/');
+      }
+    } else {
+      // User is not logged in - stop syncing but DON'T clear data
+      // This allows users who have been using the app without login to keep their data
+      // Data will only be cleared on explicit logout (see settings screen)
+      stopFirestoreSync();
+      
+      // Redirect to login if not already there
+      if (!inAuthGroup) {
+        router.replace('/login');
+      }
+    }
+  }, [user, loading, segments]);
+
+  // Show loading screen while checking authentication
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <Tabs
@@ -137,6 +190,26 @@ export default function RootLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="login"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+});
