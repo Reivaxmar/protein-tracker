@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useProteinStore } from '../store/proteinStore';
 import { useLanguageStore } from '../store/languageStore';
 import { useTagStore, DEFAULT_TAGS } from '../store/tagStore';
+import { useAuthStore } from '../store/authStore';
 import { Language } from '../translations';
 
 export default function SettingsScreen() {
@@ -17,6 +18,7 @@ export default function SettingsScreen() {
   const tags = useTagStore((state) => state.tags);
   const addTag = useTagStore((state) => state.addTag);
   const removeTag = useTagStore((state) => state.removeTag);
+  const { user, logout } = useAuthStore();
   const [inputValue, setInputValue] = useState(targetProtein.toString());
   const [newTagValue, setNewTagValue] = useState('');
   const [showExportModal, setShowExportModal] = useState(false);
@@ -174,6 +176,27 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout? Your data will still be synced to the cloud.',
+      [
+        { text: t.cancel, style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'Failed to logout');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
@@ -318,6 +341,25 @@ export default function SettingsScreen() {
             {t.settings.featuresText}
           </Text>
         </View>
+
+        {user && (
+          <View style={styles.card}>
+            <Text style={styles.title}>Account</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Logged in as</Text>
+              <Text style={styles.userEmail}>{user.email}</Text>
+              <Text style={styles.hint}>
+                Your data is automatically synced across all your devices in real-time.
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
+              <Text style={styles.logoutButtonText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <Modal
@@ -623,6 +665,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalSendButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  userEmail: {
+    fontSize: 16,
+    color: '#1f2937',
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  logoutButton: {
+    backgroundColor: '#ef4444',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+  },
+  logoutButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
