@@ -727,7 +727,7 @@ export default function QuickMealScreen() {
                     <Text style={styles.label}>{t.quickMeal.amount}</Text>
                     <TextInput
                       style={styles.input}
-                      placeholder="e.g., 150"
+                      placeholder={t.quickMeal.amountPlaceholder}
                       value={savedIngredientGrams}
                       onChangeText={setSavedIngredientGrams}
                       keyboardType="decimal-pad"
