@@ -147,6 +147,11 @@ export interface Translations {
     quickMealDefault: string;
     mealTagLabel: string;
     tagNone: string;
+    selectSavedIngredient: string;
+    searchSavedIngredients: string;
+    noSavedIngredients: string;
+    addQuickIngredient: string;
+    quickIngredientTitle: string;
   };
   
   // Recipes Screen
@@ -446,6 +451,11 @@ export const translations: Record<Language, Translations> = {
       quickMealDefault: 'Quick Meal',
       mealTagLabel: 'Meal Tag (Optional)',
       tagNone: 'None',
+      selectSavedIngredient: 'Select Saved Ingredient',
+      searchSavedIngredients: 'Search saved ingredients...',
+      noSavedIngredients: 'No saved ingredients found. Add one using the button below!',
+      addQuickIngredient: '➕ Add Quick Ingredient',
+      quickIngredientTitle: 'Quick Ingredient',
     },
     
     // Recipes Screen
@@ -743,6 +753,11 @@ export const translations: Record<Language, Translations> = {
       quickMealDefault: 'Comida Rápida',
       mealTagLabel: 'Etiqueta de Comida (Opcional)',
       tagNone: 'Ninguna',
+      selectSavedIngredient: 'Seleccionar Ingrediente Guardado',
+      searchSavedIngredients: 'Buscar ingredientes guardados...',
+      noSavedIngredients: '¡No se encontraron ingredientes guardados. Añade uno usando el botón de abajo!',
+      addQuickIngredient: '➕ Añadir Ingrediente Rápido',
+      quickIngredientTitle: 'Ingrediente Rápido',
     },
     
     // Pantalla de Recetas
