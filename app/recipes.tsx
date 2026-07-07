@@ -5,6 +5,7 @@ import { useLanguageStore } from '../store/languageStore';
 import { useTagStore } from '../store/tagStore';
 import { Recipe } from '../types';
 import { useRouter } from 'expo-router';
+import { getTodayDateString } from '../utils/helpers';
 
 interface RecipesScreenProps {
   onNavigateToCreate?: () => void;
@@ -24,6 +25,7 @@ export default function RecipesScreen({ onNavigateToCreate }: RecipesScreenProps
   const [promptRecipe, setPromptRecipe] = useState<Recipe | null>(null);
   const [promptMode, setPromptMode] = useState<'servings' | 'grams'>('servings');
   const [selectedTag, setSelectedTag] = useState<string>('');
+  const [mealDate, setMealDate] = useState(getTodayDateString());
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [editRecipeName, setEditRecipeName] = useState('');
@@ -81,11 +83,22 @@ export default function RecipesScreen({ onNavigateToCreate }: RecipesScreenProps
     setPromptValue('1');
     setPromptMode('servings');
     setSelectedTag('');
+    setMealDate(getTodayDateString());
     setPromptVisible(true);
   };
 
   const handleSubmitPrompt = (value: string, recipe?: Recipe) => {
     if (!recipe) return;
+
+    const normalizedDate = mealDate.trim();
+    const isValidDateFormat = /^\d{4}-\d{2}-\d{2}$/.test(normalizedDate);
+    const parsedDate = new Date(normalizedDate);
+    const isValidDate = isValidDateFormat && !isNaN(parsedDate.getTime()) && parsedDate.toISOString().split('T')[0] === normalizedDate;
+
+    if (!isValidDate) {
+      Alert.alert(t.error, 'Please enter a valid date in YYYY-MM-DD format');
+      return;
+    }
     
     if (promptMode === 'servings') {
       const servingCount = parseFloat(value || '1');
@@ -95,7 +108,7 @@ export default function RecipesScreen({ onNavigateToCreate }: RecipesScreenProps
       }
       
       setPromptVisible(false);
-      addMealFromRecipe(recipe.id, servingCount, false, selectedTag || undefined);
+      addMealFromRecipe(recipe.id, servingCount, false, selectedTag || undefined, normalizedDate);
       Alert.alert(
         t.success,
         `${t.recipes.addedRecipe} ${servingCount} ${servingCount > 1 ? t.recipes.servings : t.recipes.serving} of ${recipe.name} (${(recipe.totalProtein * servingCount).toFixed(1)}g protein)`,
@@ -117,7 +130,7 @@ export default function RecipesScreen({ onNavigateToCreate }: RecipesScreenProps
       }
       
       setPromptVisible(false);
-      addMealFromRecipe(recipe.id, gramsAmount, true, selectedTag || undefined);
+      addMealFromRecipe(recipe.id, gramsAmount, true, selectedTag || undefined, normalizedDate);
       const proteinPer100g = recipe.totalGrams > 0 ? (recipe.totalProtein / recipe.totalGrams) * 100 : 0;
       const proteinAmount = (proteinPer100g * gramsAmount) / 100;
       Alert.alert(
@@ -140,6 +153,7 @@ export default function RecipesScreen({ onNavigateToCreate }: RecipesScreenProps
     setPromptRecipe(recipe);
     setPromptValue(recipe.totalGrams.toString());
     setPromptMode('grams');
+    setMealDate(getTodayDateString());
     setPromptVisible(true);
   };
 
@@ -193,6 +207,15 @@ export default function RecipesScreen({ onNavigateToCreate }: RecipesScreenProps
               keyboardType="numeric"
               style={styles.modalInput}
               autoFocus
+            />
+
+            <Text style={styles.modalText}>Meal Date</Text>
+            <TextInput
+              value={mealDate}
+              onChangeText={setMealDate}
+              style={styles.modalInput}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor="#9ca3af"
             />
             
             <View style={styles.tagSection}>

@@ -26,18 +26,18 @@ export const useProteinStore = create<AppState>((set, get) => ({
     };
 
     set((state) => {
-      const today = getTodayDateString();
+      const mealDate = meal.date || getTodayDateString();
       const updatedMeals = [...state.meals, newMeal];
-      const todayMeals = updatedMeals.filter((m) => m.date === today);
-      const totalProtein = todayMeals.reduce((sum, m) => sum + m.totalProtein, 0);
+      const dateMeals = updatedMeals.filter((m) => m.date === mealDate);
+      const totalProtein = dateMeals.reduce((sum, m) => sum + m.totalProtein, 0);
 
       const updatedDailyData = {
         ...state.dailyProteinData,
-        [today]: {
-          date: today,
+        [mealDate]: {
+          date: mealDate,
           totalProtein,
           targetProtein: state.targetProtein,
-          meals: todayMeals,
+          meals: dateMeals,
         },
       };
 
@@ -170,7 +170,7 @@ export const useProteinStore = create<AppState>((set, get) => ({
     get().saveData();
   },
 
-  addMealFromRecipe: (recipeId, servingsOrGrams: number = 1, useGrams: boolean = false, tag?: string) => {
+  addMealFromRecipe: (recipeId, servingsOrGrams: number = 1, useGrams: boolean = false, tag?: string, date?: string) => {
     const state = get();
     const recipe = state.recipes.find((r) => r.id === recipeId);
     
@@ -198,11 +198,13 @@ export const useProteinStore = create<AppState>((set, get) => ({
 
     const proteinPer100g = totalGrams > 0 ? (totalProtein / totalGrams) * 100 : 0;
 
+    const mealDate = date || getTodayDateString();
+
     get().addMeal({
       name: mealName,
       proteinPer100g,
       gramsEaten: totalGrams,
-      date: getTodayDateString(),
+      date: mealDate,
       tag: tag || undefined,
     });
   },

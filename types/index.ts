@@ -55,7 +55,7 @@ export interface AppState {
   addRecipe: (recipe: Omit<Recipe, 'id' | 'createdAt'>) => void;
   deleteRecipe: (recipeId: string) => void;
   updateRecipe: (recipeId: string, updatedRecipe: Omit<Recipe, 'id' | 'createdAt'>) => void;
-  addMealFromRecipe: (recipeId: string, servingsOrGrams: number, useGrams?: boolean, tag?: string) => void;
+  addMealFromRecipe: (recipeId: string, servingsOrGrams: number, useGrams?: boolean, tag?: string, date?: string) => void;
   addCustomIngredient: (ingredient: Omit<CustomIngredient, 'id' | 'createdAt'>) => void;
   deleteCustomIngredient: (ingredientId: string) => void;
   updateCustomIngredient: (ingredientId: string, updatedIngredient: Omit<CustomIngredient, 'id' | 'createdAt'>) => void;
