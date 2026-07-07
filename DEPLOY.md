@@ -52,8 +52,7 @@ The deployment is handled by the GitHub Actions workflow (`.github/workflows/dep
 2. **GitHub Actions will automatically**:
    - Install dependencies
    - Build the web version using `npx expo export --platform web`
-   - Fix paths for GitHub Pages subdirectory
-   - Deploy to GitHub Pages
+   - Deploy the generated `dist` folder to GitHub Pages
 
 3. **Access your app** at:
    ```
@@ -69,12 +68,7 @@ If you need to deploy manually:
    npx expo export --platform web
    ```
 
-2. **Fix paths for GitHub Pages** (if deploying to a subdirectory):
-   ```bash
-   node fix-gh-pages-paths.js
-   ```
-
-3. **Deploy the `dist` folder** to your web hosting service
+2. **Deploy the `dist` folder** to your web hosting service
 
 ### Web Deployment Configuration
 
@@ -363,7 +357,7 @@ plugins: [
 If the app doesn't work correctly on GitHub Pages:
 
 - Verify the `basePath` in `app.config.js` matches your repository name
-- Ensure `fix-gh-pages-paths.js` is properly fixing asset paths
+- Verify the workflow uploads and deploys the generated `dist` folder
 
 ## EAS Updates (Over-the-Air Updates)
 
