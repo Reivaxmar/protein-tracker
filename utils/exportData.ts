@@ -14,52 +14,69 @@ interface ExportData {
  */
 export function formatMealsForExport(data: ExportData): any[] {
   const formattedData: any[] = [];
-  
-  // Get all dates and sort them
-  const dates = Object.keys(data.dailyProteinData).sort();
-  
+
+  const meals = Array.isArray(data.meals) ? data.meals : [];
+  const dailyDataMap = data.dailyProteinData || {};
+  const mealsByDate: { [date: string]: Meal[] } = {};
+
+  meals.forEach((meal) => {
+    if (!meal || !meal.date) {
+      return;
+    }
+    if (!mealsByDate[meal.date]) {
+      mealsByDate[meal.date] = [];
+    }
+    mealsByDate[meal.date].push(meal);
+  });
+
+  const dates = Object.keys(mealsByDate).sort();
+
   dates.forEach((date) => {
-    const dailyData = data.dailyProteinData[date];
-    const mealsForDay = dailyData.meals;
-    
-    // Group meals by tag
+    const mealsForDay = mealsByDate[date];
     const mealsByTag: { [tag: string]: Meal[] } = {};
-    
+
     mealsForDay.forEach((meal) => {
-      const tag = meal.tag || 'untagged';
+      const tag = (meal.tag || 'untagged').trim() || 'untagged';
       if (!mealsByTag[tag]) {
         mealsByTag[tag] = [];
       }
       mealsByTag[tag].push(meal);
     });
-    
-    // Add each meal with its information
+
     Object.keys(mealsByTag).sort().forEach((tag) => {
-      mealsByTag[tag].forEach((meal) => {
-        formattedData.push({
-          Date: date,
-          Tag: tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase(),
-          'Meal Name': meal.name,
-          'Protein per 100g (g)': meal.proteinPer100g.toFixed(2),
-          'Grams Eaten': meal.gramsEaten.toFixed(2),
-          'Total Protein (g)': meal.totalProtein.toFixed(2),
-          Timestamp: new Date(meal.timestamp).toLocaleString(),
+      mealsByTag[tag]
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
+        .forEach((meal) => {
+          const proteinPer100g = Number(meal.proteinPer100g) || 0;
+          const gramsEaten = Number(meal.gramsEaten) || 0;
+          const totalProtein = Number(meal.totalProtein) || 0;
+          const timestamp = Number(meal.timestamp);
+
+          formattedData.push({
+            Date: date,
+            Tag: tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase(),
+            'Meal Name': meal.name || '',
+            'Protein per 100g (g)': proteinPer100g.toFixed(2),
+            'Grams Eaten': gramsEaten.toFixed(2),
+            'Total Protein (g)': totalProtein.toFixed(2),
+            Timestamp: Number.isFinite(timestamp) ? new Date(timestamp).toLocaleString() : '',
+          });
         });
-      });
     });
-    
-    // Add daily summary
+
+    const dayTotal = mealsForDay.reduce((sum, meal) => sum + (Number(meal.totalProtein) || 0), 0);
+    const dayTarget = Number(dailyDataMap[date]?.targetProtein);
+
     formattedData.push({
       Date: date,
       Tag: '--- DAILY SUMMARY ---',
       'Meal Name': '',
       'Protein per 100g (g)': '',
       'Grams Eaten': '',
-      'Total Protein (g)': dailyData.totalProtein.toFixed(2),
-      Timestamp: `Target: ${dailyData.targetProtein.toFixed(2)}g`,
+      'Total Protein (g)': dayTotal.toFixed(2),
+      Timestamp: Number.isFinite(dayTarget) ? `Target: ${dayTarget.toFixed(2)}g` : '',
     });
-    
-    // Add empty row for separation
+
     formattedData.push({
       Date: '',
       Tag: '',
@@ -130,6 +147,9 @@ export async function exportAsCSV(data: ExportData): Promise<void> {
 
     // Web fallback: trigger browser download directly
     if (Platform.OS === 'web') {
+      if (typeof document === 'undefined' || typeof URL === 'undefined') {
+        throw new Error('Web export is not available in this environment');
+      }
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -189,21 +209,15 @@ export async function exportAsXLSX(data: ExportData): Promise<void> {
       { wch: 25 }, // Timestamp
     ];
     
-    // Write the workbook to base64
-    const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-
     const fileName = generateExportFileName('xlsx');
 
-    // Web fallback: create blob from base64 and trigger download
+    // Web fallback: create blob and trigger download
     if (Platform.OS === 'web') {
-      // convert base64 to binary
-      const byteCharacters = atob(wbout);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      if (typeof document === 'undefined' || typeof URL === 'undefined') {
+        throw new Error('Web export is not available in this environment');
       }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const wbout = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+      const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -215,6 +229,7 @@ export async function exportAsXLSX(data: ExportData): Promise<void> {
       return;
     }
 
+    const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
     const file = new File(Paths.cache, fileName);
     await file.write(wbout, { encoding: 'base64' });
 

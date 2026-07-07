@@ -5,10 +5,12 @@ import { useLanguageStore } from '../store/languageStore';
 import { useTagStore, DEFAULT_TAGS } from '../store/tagStore';
 import { useAuthStore } from '../store/authStore';
 import { Language } from '../translations';
+import { exportAsXLSX } from '../utils/exportData';
 
 export default function SettingsScreen() {
   const targetProtein = useProteinStore((state) => state.targetProtein);
   const setTargetProtein = useProteinStore((state) => state.setTargetProtein);
+  const meals = useProteinStore((state) => state.meals);
   const dailyProteinData = useProteinStore((state) => state.dailyProteinData);
   const recipes = useProteinStore((state) => state.recipes);
   const customIngredients = useProteinStore((state) => state.customIngredients);
@@ -24,6 +26,7 @@ export default function SettingsScreen() {
   const [newTagValue, setNewTagValue] = useState('');
   const [showExportModal, setShowExportModal] = useState(false);
   const [emailValue, setEmailValue] = useState('');
+  const [isExportingSpreadsheet, setIsExportingSpreadsheet] = useState(false);
 
   const handleSave = () => {
     const newTarget = parseFloat(inputValue);
@@ -177,6 +180,26 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleExportSpreadsheet = async () => {
+    if (!Array.isArray(meals) || meals.length === 0) {
+      Alert.alert(t.error, t.settings.noDataToExport);
+      return;
+    }
+
+    setIsExportingSpreadsheet(true);
+    try {
+      await exportAsXLSX({ meals, dailyProteinData });
+      Alert.alert(t.success, t.settings.exportSuccess);
+    } catch (error: any) {
+      const message = error?.message === 'No data to export'
+        ? t.settings.noDataToExport
+        : t.settings.exportError;
+      Alert.alert(t.error, message);
+    } finally {
+      setIsExportingSpreadsheet(false);
+    }
+  };
+
   const handleLogout = () => {
     Alert.alert(
       t.settings.logoutConfirmation,
@@ -319,12 +342,22 @@ export default function SettingsScreen() {
           
           <View style={styles.formGroup}>
             <Text style={styles.hint}>
-              {t.settings.exportEmailDescription || 'Export all your data (meals, ingredients, and recipes) via email.'}
+              {t.settings.exportDescription}
             </Text>
           </View>
 
           <TouchableOpacity
             style={styles.exportButton}
+            onPress={handleExportSpreadsheet}
+            disabled={isExportingSpreadsheet}
+          >
+            <Text style={styles.exportButtonText}>
+              {isExportingSpreadsheet ? '⏳' : '📊'} {t.settings.exportXLSX}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.exportSecondaryButton}
             onPress={() => setShowExportModal(true)}
           >
             <Text style={styles.exportButtonText}>📧 {t.settings.exportViaEmail || 'Export via Email'}</Text>
@@ -594,6 +627,13 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  exportSecondaryButton: {
+    backgroundColor: '#8b5cf6',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 12,
   },
   modalOverlay: {
     flex: 1,
