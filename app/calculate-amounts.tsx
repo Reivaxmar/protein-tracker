@@ -28,6 +28,7 @@ export default function CalculateAmountsScreen() {
   const [newIngredientProtein, setNewIngredientProtein] = useState('');
   const [showLogMealModal, setShowLogMealModal] = useState(false);
   const [mealName, setMealName] = useState('');
+  const [mealDate, setMealDate] = useState(getTodayDateString());
   const [selectedTag, setSelectedTag] = useState<string>('');
   const sliderWrapperRef = useRef<View>(null);
   const [sliderWidth, setSliderWidth] = useState(300);
@@ -246,6 +247,16 @@ export default function CalculateAmountsScreen() {
       return;
     }
 
+    const normalizedDate = mealDate.trim();
+    const isValidDateFormat = /^\d{4}-\d{2}-\d{2}$/.test(normalizedDate);
+    const parsedDate = new Date(normalizedDate);
+    const isValidDate = isValidDateFormat && !isNaN(parsedDate.getTime()) && parsedDate.toISOString().split('T')[0] === normalizedDate;
+
+    if (!isValidDate) {
+      Alert.alert(t.error, 'Please enter a valid date in YYYY-MM-DD format');
+      return;
+    }
+
     const totalGrams = totalGramsCheck;
     const totalProtein = totalProteinCheck;
     const proteinPer100g = totalGrams > 0 ? (totalProtein / totalGrams) * 100 : 0;
@@ -254,7 +265,7 @@ export default function CalculateAmountsScreen() {
       name: mealName.trim(),
       proteinPer100g,
       gramsEaten: totalGrams,
-      date: getTodayDateString(),
+      date: normalizedDate,
       tag: selectedTag || undefined,
     });
 
@@ -268,6 +279,7 @@ export default function CalculateAmountsScreen() {
           setIngredients([]);
           setSliderPoints([]);
           setMealName('');
+          setMealDate(getTodayDateString());
           setSelectedTag('');
           router.push('/');
         },
@@ -278,6 +290,7 @@ export default function CalculateAmountsScreen() {
           setIngredients([]);
           setSliderPoints([]);
           setMealName('');
+          setMealDate(getTodayDateString());
           setSelectedTag('');
         },
       },
@@ -576,6 +589,17 @@ export default function CalculateAmountsScreen() {
                   placeholder={t.calculator.mealNamePlaceholder}
                   value={mealName}
                   onChangeText={setMealName}
+                  placeholderTextColor="#9ca3af"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Meal Date</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="YYYY-MM-DD"
+                  value={mealDate}
+                  onChangeText={setMealDate}
                   placeholderTextColor="#9ca3af"
                 />
               </View>
