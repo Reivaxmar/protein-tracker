@@ -79,6 +79,9 @@ web: {
   favicon: "./assets/favicon.png",
   bundler: "metro",
   output: "static"
+},
+experiments: {
+  baseUrl: "/protein-tracker"
 }
 ```
 
@@ -356,7 +359,7 @@ plugins: [
 
 If the app doesn't work correctly on GitHub Pages:
 
-- Verify the `basePath` in `app.config.js` matches your repository name
+- Verify `experiments.baseUrl` in `app.config.js` matches your repository name
 - Verify the workflow uploads and deploys the generated `dist` folder
 
 ## EAS Updates (Over-the-Air Updates)
