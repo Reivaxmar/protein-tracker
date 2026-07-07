@@ -31,6 +31,9 @@ export default {
       bundler: "metro",
       output: "static"
     },
+    experiments: {
+      baseUrl: "/protein-tracker"
+    },
     plugins: [
       "expo-router",
       [
